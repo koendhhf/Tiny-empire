@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10251e">
+<meta name="description" content="Build a tiny business empire, one tap at a time.">
+<title>Tiny Empire</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1714;--panel:#14251f;--panel2:#1b3028;--ink:#f5f4e9;--muted:#a6b9ae;--lime:#c5f36b;--gold:#ffd166;--line:#2c463a;--red:#ff9b91}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#19352a 0%,var(--bg) 58%);color:var(--ink);font:16px/1.45 ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.wrap{max-width:760px;margin:auto;padding:18px 16px calc(32px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{display:flex;gap:10px;align-items:center}.logo{font-size:30px;background:#263e30;border:1px solid #45634a;border-radius:14px;padding:8px}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--lime);font-weight:800}.brand h1{font-size:22px;line-height:1.1;margin:2px 0}.sub{color:var(--muted);font-size:12px}.reset{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:12px;padding:9px 11px;font-size:12px}
+.hero{border:1px solid #385542;border-radius:24px;padding:22px;background:linear-gradient(140deg,#244635,#14281f 68%);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:170px;height:170px;border:1px solid #ffffff12;border-radius:50%;right:-50px;top:-68px;box-shadow:0 0 0 22px #ffffff08,0 0 0 45px #ffffff05;pointer-events:none}.cash-label{color:#c7d7cb;font-size:13px;font-weight:650}.cash{font-size:clamp(38px,10vw,56px);font-weight:900;letter-spacing:-.055em;line-height:1.15;margin:5px 0}.income{color:var(--lime);font-size:14px;font-weight:750}.tap{width:100%;margin-top:18px;background:var(--lime);color:#172319;border:0;border-radius:17px;padding:18px 14px;font-weight:900;font-size:19px;box-shadow:0 5px 0 #81a83d;transition:transform .08s,box-shadow .08s}.tap:active{transform:translateY(4px);box-shadow:0 1px 0 #81a83d}.tap small{display:block;font-size:12px;font-weight:700;opacity:.72;margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 22px}.stat{background:#111f1a;border:1px solid var(--line);border-radius:15px;padding:12px 10px}.stat span{display:block;color:var(--muted);font-size:11px}.stat strong{display:block;font-size:18px;margin-top:3px}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:22px 0 11px}.section-head h2{margin:0;font-size:19px}.section-head p{margin:0;color:var(--muted);font-size:12px}
+.businesses{display:grid;gap:10px}.biz{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px;background:var(--panel);border:1px solid var(--line);border-radius:18px}.biz.locked{opacity:.72}.biz-icon{width:50px;height:50px;display:grid;place-items:center;border-radius:14px;background:#263d30;font-size:27px}.biz h3{font-size:15px;margin:0 0 2px}.biz .desc{font-size:12px;color:var(--muted);margin:0}.biz .level{font-size:11px;color:var(--lime);margin-top:4px;font-weight:750}.buy{min-width:88px;max-width:112px;border:1px solid #45634a;background:#2b4936;color:var(--lime);font-weight:850;border-radius:12px;padding:10px 9px;font-size:12px}.buy:disabled{opacity:.38;cursor:not-allowed}.buy .price{display:block;font-size:11px;color:#e3eddb;margin-top:3px}.unlock{color:var(--gold);font-size:11px}.milestones{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px}.milestone{display:flex;align-items:center;gap:10px;padding:8px 0}.milestone+.milestone{border-top:1px solid var(--line)}.check{width:25px;height:25px;border:1px solid #46624e;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:12px;flex-shrink:0}.done .check{background:var(--lime);color:#1a2918;border-color:var(--lime)}.milestone b{display:block;font-size:13px}.milestone small{color:var(--muted);font-size:12px}.done b{color:var(--lime)}.feed{color:var(--muted);font-size:12px;min-height:20px;margin-top:14px;text-align:center}.footer{text-align:center;color:#71877a;font-size:11px;margin-top:22px}
+@media(min-width:600px){.wrap{padding-top:28px}.hero{padding:28px}.businesses{grid-template-columns:1fr 1fr}.biz{grid-template-columns:48px minmax(0,1fr);}.biz-icon{width:46px;height:46px}.buy{grid-column:1/-1;max-width:none;width:100%}.buy .price{display:inline;margin-left:4px}.section-head{margin-top:26px}}
+@media(max-width:360px){.wrap{padding-left:11px;padding-right:11px}.biz{grid-template-columns:43px minmax(0,1fr) auto;gap:8px;padding:10px}.biz-icon{width:42px;height:42px;font-size:23px}.buy{min-width:76px;padding:9px 6px}.stat{padding:10px 8px}.stat strong{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand"><div class="logo" aria-hidden="true">🏪</div><div><div class="eyebrow">Your first fortune</div><h1>Tiny Empire</h1><div class="sub">Small starts. Big dreams.</div></div></div><button class="reset" id="resetBtn">↻ Reset</button></header>
+<section class="hero" aria-label="Your money"><div class="cash-label">YOUR CASH</div><div class="cash" id="cash">$0</div><div class="income" id="income">+$0.0 / second</div><button class="tap" id="tapBtn">💵 Collect cash <small>Tap to grow your empire</small></button></section>
+<div class="stats"><div class="stat"><span>Lifetime earned</span><strong id="lifetime">$0</strong></div><div class="stat"><span>Businesses</span><strong id="businessCount">1</strong></div><div class="stat"><span>Empire level</span><strong id="empireLevel">1</strong></div></div>
+<div class="section-head"><div><h2>🏘️ Your businesses</h2><p>Upgrade to earn more, even while away.</p></div></div>
+<div class="businesses" id="businesses"></div>
+<div class="section-head"><div><h2>🎯 Little milestones</h2><p>Every empire starts somewhere.</p></div></div>
+<div class="milestones" id="milestones"></div>
+<div class="feed" id="feed" role="status" aria-live="polite">Your first dollar is just one tap away.</div>
+<div class="footer">Progress saves automatically on this device · Offline earnings capped at 4 hours</div>
+</div>
+<script>
+(()=>{
+const SAVE_KEY='tiny-empire-save-v1';
+const defs=[
+{id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:0.4,cost:10,costGrowth:1.15,incomeGrowth:1.20},
+{id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:25,base:1.8,cost:25,costGrowth:1.16,incomeGrowth:1.22},
+{id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:180,base:8,cost:180,costGrowth:1.17,incomeGrowth:1.23}
+];
+const milestones=[{value:10,title:'First pocket money',desc:'Earn $10 in total.'},{value:25,title:'A growing little town',desc:'Unlock the Snack Cart.'},{value:180,title:'Coffee break',desc:'Unlock the Coffee Corner.'},{value:500,title:'Local legend',desc:'Earn $500 in total.'},{value:2500,title:'Tiny tycoon',desc:'Earn $2,500 in total.'}];
+let state={cash:0,lifetime:0,levels:{lemonade:1,snack:0,coffee:0},lastSeen:Date.now()};
+let feedTimer;
+const $=id=>document.getElementById(id);
+const money=n=>'$'+Math.floor(n).toLocaleString('en-US');
+const precise=n=>'$'+(n<10?n.toFixed(1):n.toLocaleString('en-US',{maximumFractionDigits:0}));
+function income(){return defs.reduce((sum,d)=>sum+(state.levels[d.id]?d.base*Math.pow(d.incomeGrowth,state.levels[d.id]-1)*state.levels[d.id]:0),0)}
+function cost(d){return Math.ceil(d.cost*Math.pow(d.costGrowth,state.levels[d.id]))}
+function say(msg){$('feed').textContent=msg}
+function save(){state.lastSeen=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){}}
+function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(raw){const s=JSON.parse(raw);if(s&&typeof s.cash==='number'&&s.levels){state={cash:Math.max(0,s.cash),lifetime:Math.max(0,s.lifetime||0),levels:{lemonade:Math.max(1,Math.floor(s.levels.lemonade||1)),snack:Math.max(0,Math.floor(s.levels.snack||0)),coffee:Math.max(0,Math.floor(s.levels.coffee||0))},lastSeen:s.lastSeen||Date.now()}}} }catch(e){}
+const elapsed=Math.min(4*60*60,Math.max(0,(Date.now()-state.lastSeen)/1000));const earned=income()*elapsed*.75;if(earned>=.1){state.cash+=earned;state.lifetime+=earned;window._offlineMessage='Welcome back! Your businesses earned '+precise(earned)+' while you were away.'}}
+function render(){ $('cash').textContent=money(state.cash);$('income').textContent='+'+precise(income())+' / second';$('lifetime').textContent=money(state.lifetime);$('businessCount').textContent=defs.reduce((n,d)=>n+(state.levels[d.id]>0?1:0),0);$('empireLevel').textContent=1+Math.floor(state.lifetime/500);
+$('businesses').innerHTML=defs.map(d=>{const level=state.levels[d.id],unlocked=state.lifetime>=d.unlock||level>0,price=cost(d),rate=level?d.base*Math.pow(d.incomeGrowth,level-1)*level:0;return '<article class="biz '+(!unlocked?'locked':'')+'"><div class="biz-icon">'+d.icon+'</div><div><h3>'+d.name+'</h3><p class="desc">'+d.desc+'</p><div class="level">'+(level?'Level '+level+' · '+precise(rate)+'/s':('<span class="unlock">Unlock at '+money(d.unlock)+' lifetime earned</span>'))+'</div></div><button class="buy" data-buy="'+d.id+'" '+(!unlocked||state.cash<price?'disabled':'')+'>'+(level?'Upgrade':'Buy')+'<span class="price">'+money(price)+'</span></button></article>'}).join('');
+$('milestones').innerHTML=milestones.map(m=>{const done=state.lifetime>=m.value;return '<div class="milestone '+(done?'done':'')+'"><div class="check">'+(done?'✓':'·')+'</div><div><b>'+m.title+'</b><small>'+m.desc+'</small></div></div>'}).join('');
+document.querySelectorAll('[data-buy]').forEach(btn=>btn.addEventListener('click',()=>buy(btn.dataset.buy)));
+}
+function collect(){const gain=1+Math.floor((state.levels.lemonade-1)*.25);state.cash+=gain;state.lifetime+=gain;render();save();say('Nice! You collected '+money(gain)+'. Keep it growing!')}
+function buy(id){const d=defs.find(x=>x.id===id);if(!d)return;const price=cost(d);if(state.cash<price)return;if(state.levels[id]===0&&state.lifetime<d.unlock)return;state.cash-=price;state.levels[id]++;render();save();say(d.name+' is now level '+state.levels[id]+'. Your empire is growing!')}
+$('tapBtn').addEventListener('click',collect);
+$('resetBtn').addEventListener('click',()=>{if(confirm('Start a brand-new empire? This will erase your saved progress.')){state={cash:0,lifetime:0,levels:{lemonade:1,snack:0,coffee:0},lastSeen:Date.now()};try{localStorage.removeItem(SAVE_KEY)}catch(e){}render();say('Fresh start! Build your tiny empire.')}});
+load();render();if(window._offlineMessage)say(window._offlineMessage);save();
+setInterval(()=>{const amount=income();state.cash+=amount;state.lifetime+=amount;render();save()},1000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save()});
+})();
+</script>
+</body>
+</html>
