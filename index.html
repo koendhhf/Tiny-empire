@@ -52,7 +52,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 <div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash, own more businesses, and buy production-doubling tiers at 10, 25, 50, 100, 150 and 200 units.</p></div></div>
 <div class="milestones" id="milestones"></div><div class="section-head"><div><h2>🏪 Business milestones</h2><p>Build your portfolio to earn one-time cash bonuses each run.</p></div></div><div class="milestones" id="businessMilestones"></div></main>
 <main id="legacyScreen" class="game-screen" data-screen="legacy"><div class="section-head"><div><h2>👑 Empire prestige</h2><p>Restart your empire for a permanent income boost.</p></div></div>
-<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $250K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $50K</span></button></div></section>
+<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $250K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $250K</span></button></div></section>
 <div class="section-head"><div><h2>🧬 Prestige legacy</h2><p>Each prestige unlocks permanent account-wide milestones. Your legacy grows across resets.</p></div></div><section class="milestones" id="legacyPanel" aria-live="polite"></section>
 <div class="save-tools"><button type="button" class="save-tool" id="exportSaveBtn">⬇ Export save</button><button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button><input id="importSaveFile" type="file" accept=".json,application/json" hidden></div><div class="footer">Progress saves automatically on this device · Offline earnings start capped at 4 hours; prestige legacy extends this to 7 · No account required</div>
 </main>
@@ -67,7 +67,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 'use strict';
 const SAVE_KEY='tiny-empire-save-v1';
 const PRESTIGE_THRESHOLD=250000;
-const COST_SCALE=1.18; // Costs rise steadily; later businesses use slightly steeper curves.
+const COST_SCALE=1.20; // Baseline growth; midgame and late-game businesses scale more steeply.
 const defs=[
 {id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.25,cost:15,costGrowth:1.18,incomeGrowth:1.20},
 {id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:80,base:1.1,cost:50,costGrowth:1.18,incomeGrowth:1.22},
@@ -84,13 +84,13 @@ const defs=[
 {id:'dyson',name:'Dyson Energy Grid',icon:'☀️',desc:'Harvest a star’s power to fuel your empire.',unlock:300000000,base:7000000,cost:300000000,costGrowth:1.21,incomeGrowth:1.33},
 {id:'quantum',name:'Quantum Network',icon:'🌀',desc:'Trade across realities with near-infinite reach.',unlock:1500000000,base:28000000,cost:1500000000,costGrowth:1.21,incomeGrowth:1.34},
 {id:'timemachine',name:'Time Machine Works',icon:'⏳',desc:'Turn tomorrow’s opportunities into today’s revenue.',unlock:100000000000,base:5000000000,cost:100000000000,costGrowth:1.22,incomeGrowth:1.35},
-{id:'multiverse',name:'Multiverse Exchange',icon:'🪐',desc:'Trade goods and ideas across parallel realities.',unlock:10000000000000,base:500000000000,cost:10000000000000,costGrowth:COST_SCALE,incomeGrowth:1.36},
-{id:'blackhole',name:'Black Hole Foundry',icon:'🕳️',desc:'Convert extreme gravity into industrial output.',unlock:1000000000000000,base:50000000000000,cost:1000000000000000,costGrowth:COST_SCALE,incomeGrowth:1.37},
-{id:'federation',name:'Galactic Federation',icon:'🛸',desc:'Coordinate a thousand civilizations under one economy.',unlock:100000000000000000,base:5000000000000000,cost:100000000000000000,costGrowth:COST_SCALE,incomeGrowth:1.38},
-{id:'universeforge',name:'Universe Forge',icon:'🌌',desc:'Manufacture new universes to expand your markets.',unlock:10000000000000000000,base:500000000000000000,cost:10000000000000000000,costGrowth:COST_SCALE,incomeGrowth:1.39},
-{id:'realityengine',name:'Reality Engine',icon:'⚙️',desc:'Rewrite the rules that govern production itself.',unlock:1e21,base:5e19,cost:1e21,costGrowth:COST_SCALE,incomeGrowth:1.40},
-{id:'omniverse',name:'Omniverse Network',icon:'♾️',desc:'Connect every possible timeline to your supply chain.',unlock:1e23,base:5e21,cost:1e23,costGrowth:COST_SCALE,incomeGrowth:1.41},
-{id:'eternal',name:'Eternal Empire',icon:'👑',desc:'Build an empire that outlasts time and reality.',unlock:1e25,base:5e23,cost:1e25,costGrowth:COST_SCALE,incomeGrowth:1.42}
+{id:'multiverse',name:'Multiverse Exchange',icon:'🪐',desc:'Trade goods and ideas across parallel realities.',unlock:10000000000000,base:500000000000,cost:10000000000000,costGrowth:1.22,incomeGrowth:1.36},
+{id:'blackhole',name:'Black Hole Foundry',icon:'🕳️',desc:'Convert extreme gravity into industrial output.',unlock:1000000000000000,base:50000000000000,cost:1000000000000000,costGrowth:1.22,incomeGrowth:1.37},
+{id:'federation',name:'Galactic Federation',icon:'🛸',desc:'Coordinate a thousand civilizations under one economy.',unlock:100000000000000000,base:5000000000000000,cost:100000000000000000,costGrowth:1.23,incomeGrowth:1.38},
+{id:'universeforge',name:'Universe Forge',icon:'🌌',desc:'Manufacture new universes to expand your markets.',unlock:10000000000000000000,base:500000000000000000,cost:10000000000000000000,costGrowth:1.23,incomeGrowth:1.39},
+{id:'realityengine',name:'Reality Engine',icon:'⚙️',desc:'Rewrite the rules that govern production itself.',unlock:1e21,base:5e19,cost:1e21,costGrowth:1.23,incomeGrowth:1.40},
+{id:'omniverse',name:'Omniverse Network',icon:'♾️',desc:'Connect every possible timeline to your supply chain.',unlock:1e23,base:5e21,cost:1e23,costGrowth:1.24,incomeGrowth:1.41},
+{id:'eternal',name:'Eternal Empire',icon:'👑',desc:'Build an empire that outlasts time and reality.',unlock:1e25,base:5e23,cost:1e25,costGrowth:1.24,incomeGrowth:1.42}
 ];
 const upgrades=[
 {id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 1.6× cash.',cost:60,effect:'tap',mult:1.6},
@@ -127,9 +127,9 @@ const upgrades=[
 const tierThresholds=[10,25,50,100,150,200];
 // Tier contracts are priced against the cumulative cost of reaching each level, rather than being cheap flat bonuses.
 // Tier contract prices follow each business's actual purchase-cost curve.
-// Approximate cumulative investment at each tier using the same 15% cost curve as business purchases.
+// Tier contracts cost 2.5× the cumulative investment required to reach their level threshold.
 const tierNames=['Starter','Established','Regional','National','Global','Legendary'];
-upgrades.push(...defs.flatMap(d=>tierThresholds.map((threshold,i)=>({id:'tier_'+d.id+'_'+threshold,icon:d.icon,name:d.name+' · '+tierNames[i]+' contract',desc:'Own '+threshold+' '+d.name+' to unlock. Doubles this business production permanently.',cost:Math.ceil(d.cost*(Math.abs((d.costGrowth||COST_SCALE)-1)<1e-9?threshold:(Math.pow(d.costGrowth||COST_SCALE,threshold)-1)/((d.costGrowth||COST_SCALE)-1))),effect:'business',business:d.id,mult:2,threshold,tierIndex:i}))));
+upgrades.push(...defs.flatMap(d=>tierThresholds.map((threshold,i)=>({id:'tier_'+d.id+'_'+threshold,icon:d.icon,name:d.name+' · '+tierNames[i]+' contract',desc:'Own '+threshold+' '+d.name+' to unlock. Doubles this business production permanently.',cost:Math.ceil(2.5*d.cost*(Math.abs((d.costGrowth||COST_SCALE)-1)<1e-9?threshold:(Math.pow(d.costGrowth||COST_SCALE,threshold)-1)/((d.costGrowth||COST_SCALE)-1))),effect:'business',business:d.id,mult:2,threshold,tierIndex:i}))));
 const goals=[
 {id:'g10',value:10,title:'First pocket money',desc:'Earn $10 in total.',reward:2},
 {id:'g25',value:25,title:'A growing little town',desc:'Earn $25 in total.',reward:5},
@@ -203,7 +203,7 @@ function baseIncome(){return defs.reduce((sum,d)=>sum+businessIncome(d),0)}
 function income(){return baseIncome()*(Date.now()<state.boostUntil?2:1)}
 function localDateKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function yesterdayDateKey(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function dailyReward(){const base=Math.max(10,Math.min(1000000000000,Math.floor(10+baseIncome()*20)));const nextStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;return Math.floor(base*(1+Math.min(6,Math.max(0,nextStreak-1))*.25))}
+function dailyReward(){const base=Math.max(10,Math.min(1000000000,Math.floor(10+baseIncome()*5)));const nextStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;return Math.floor(base*(1+Math.min(5,Math.max(0,nextStreak-1))*.1))}
 function updateSpecialButtons(){const now=Date.now(),active=now<state.boostUntil,cooldown=now<state.boostCooldownUntil,claimed=state.dailyClaimDate===localDateKey();$('boostBtn').disabled=active||cooldown;$('boostHint').textContent=active?'ACTIVE · '+Math.ceil((state.boostUntil-now)/1000)+' sec':cooldown?'Ready in '+Math.ceil((state.boostCooldownUntil-now)/1000)+' sec':'2× income for '+(30+legacyBoostSeconds())+' sec';$('boostBtn').style.opacity=(active||cooldown)?'.65':'1';$('dailyBtn').disabled=claimed;$('dailyHint').textContent=claimed?'Come back tomorrow · '+(state.dailyStreak||1)+'-day streak':'Claim '+money(dailyReward())+' · '+(state.dailyClaimDate===yesterdayDateKey()?(state.dailyStreak||0)+1:1)+'-day streak'}
 function cost(d){return Math.ceil(d.cost*Math.pow(d.costGrowth||1.15,state.levels[d.id]||0))}
 function purchaseCost(d,count){if(count<=0)return 0;const level=state.levels[d.id]||0,growth=d.costGrowth||1.15,first=d.cost*Math.pow(growth,level);if(Math.abs(growth-1)<1e-9)return Math.ceil(first*count);return Math.ceil(first*(Math.pow(growth,count)-1)/(growth-1))}
