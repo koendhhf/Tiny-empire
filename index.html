@@ -35,6 +35,26 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 .milestones{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}.milestone{display:flex;align-items:center;gap:10px;padding:9px 0}.milestone+.milestone{border-top:1px solid var(--line)}.check{width:25px;height:25px;border:1px solid #46624e;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:12px;flex-shrink:0}.done .check{background:var(--lime);color:#1a2918;border-color:var(--lime)}.milestone b{display:block;font-size:12px}.milestone small{display:block;color:var(--muted);font-size:11px}.done b{color:var(--lime)}.milestone .reward{margin-left:auto;color:var(--gold);font-size:11px;white-space:nowrap}.feed{color:var(--muted);font-size:12px;min-height:16px;margin-top:7px;text-align:center}.save-tools{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0 6px}.save-tool{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:10px;padding:9px 12px;font:600 12px inherit;cursor:pointer}.save-tool:active{transform:scale(.98)}.footer{text-align:center;color:#71877a;font-size:11px;margin-top:22px}.progress-track{height:6px;background:#07150e;border-radius:99px;overflow:hidden;margin-top:8px}.progress-fill{height:100%;background:var(--lime);border-radius:99px;transition:width .2s}.empty-hint{font-size:12px;color:var(--muted);padding:8px 2px}
 @media(min-width:600px){.wrap{padding-top:28px}.hero{padding:28px}.businesses{grid-template-columns:1fr 1fr}.biz{grid-template-columns:46px minmax(0,1fr) auto}.upgrades{grid-template-columns:repeat(3,minmax(0,1fr))}.section-head{margin-top:27px}}
 @media(max-width:390px){.wrap{padding-left:10px;padding-right:10px}.biz{grid-template-columns:39px minmax(0,1fr) auto;gap:8px;padding:10px}.biz-icon{width:38px;height:38px;font-size:22px}.buy{min-width:73px;padding:8px 5px}.stat{padding:10px 7px}.stat strong{font-size:15px}.upgrade{padding:11px;min-height:150px}.upgrade b{font-size:12px}}
+/* Keep the daily-goal card clear of the fixed navigation on short mobile screens. */
+@media(max-width:599px) and (max-height:900px){
+  header{margin-bottom:8px}
+  .wrap{padding-top:12px}
+  .hero{padding:10px}
+  .cash{margin:3px 0;font-size:clamp(36px,9.5vw,50px)}
+  .hero-meta{margin-top:6px;gap:6px}
+  .tap{margin-top:8px;padding:10px 12px;font-size:18px}
+  .stats{gap:6px;margin:5px 0 7px}
+  .stat{padding:7px}
+  .missions-panel{padding:8px;margin:8px 0 10px}
+  .mission-list{gap:4px}
+  .mission{padding:4px;gap:6px}
+  .long-goal{margin-top:8px;padding-top:8px}
+  .long-goal strong{margin-top:3px}
+  .long-goal .progress-track{margin-top:5px}
+  .bottom-nav{padding:5px;gap:4px}
+  .nav-item{padding:5px 3px}
+  .nav-item .nav-icon{font-size:17px}
+}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
