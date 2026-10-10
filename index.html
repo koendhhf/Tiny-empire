@@ -177,6 +177,7 @@ function formatNumbers(value){
  const sign=n<0?'-':'',abs=Math.abs(n);
  if(abs<1000)return sign+(Number.isInteger(abs)?String(abs):trimFixed(abs,2));
  if(abs<1e6)return sign+Math.round(abs).toLocaleString('en-US');
+ if(abs>1e36)return sign+abs.toExponential(2).replace('e+','e');
  for(const unit of SHORT_SCALE_NAMES)if(abs>=unit.value)return sign+trimFixed(abs/unit.value,2)+' '+unit.name;
  return sign+abs.toExponential(2).replace('e+','e');
 }
