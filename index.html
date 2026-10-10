@@ -52,7 +52,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 <div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash, own more businesses, and buy production-doubling tiers at 10, 25, 50, 100, 150 and 200 units.</p></div></div>
 <div class="milestones" id="milestones"></div><div class="section-head"><div><h2>🏪 Business milestones</h2><p>Build your portfolio to earn one-time cash bonuses each run.</p></div></div><div class="milestones" id="businessMilestones"></div></main>
 <main id="legacyScreen" class="game-screen" data-screen="legacy"><div class="section-head"><div><h2>👑 Empire prestige</h2><p>Restart your empire for a permanent income boost.</p></div></div>
-<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $250K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $250K</span></button></div></section>
+<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $300K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $250K</span></button></div></section>
 <div class="section-head"><div><h2>🧬 Prestige legacy</h2><p>Each prestige unlocks permanent account-wide milestones. Your legacy grows across resets.</p></div></div><section class="milestones" id="legacyPanel" aria-live="polite"></section>
 <div class="save-tools"><button type="button" class="save-tool" id="exportSaveBtn">⬇ Export save</button><button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button><input id="importSaveFile" type="file" accept=".json,application/json" hidden></div><div class="footer">Progress saves automatically on this device · Offline earnings start capped at 4 hours; prestige legacy extends this to 7 · No account required</div>
 </main>
@@ -66,17 +66,17 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 (()=>{
 'use strict';
 const SAVE_KEY='tiny-empire-save-v1';
-const PRESTIGE_THRESHOLD = 250000; // Prestige is a meaningful milestone, not an early reset.
-const COST_SCALE = 1.19; // Classic idle curve, but more grind-heavy
+const PRESTIGE_THRESHOLD = 300000; // Prestige should feel like a meaningful long-run milestone.
+const COST_SCALE = 1.2; // A slightly steeper cost curve slows early snowballing.
 
 const defs = [
-  {id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.22,cost:18,costGrowth:COST_SCALE,incomeGrowth:1.18},
-  {id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:80,base:.95,cost:60,costGrowth:COST_SCALE,incomeGrowth:1.2},
-  {id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:500,base:4.5,cost:300,costGrowth:COST_SCALE,incomeGrowth:1.22},
-  {id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:2200,base:18,cost:1300,costGrowth:COST_SCALE,incomeGrowth:1.23},
-  {id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:9000,base:85,cost:6500,costGrowth:COST_SCALE,incomeGrowth:1.24},
-  {id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:36000,base:360,cost:26000,costGrowth:COST_SCALE,incomeGrowth:1.25},
-  {id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:150000,base:1500,cost:120000,costGrowth:COST_SCALE,incomeGrowth:1.27},
+  {id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.18,cost:20,costGrowth:COST_SCALE,incomeGrowth:1.18},
+  {id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:80,base:.78,cost:75,costGrowth:COST_SCALE,incomeGrowth:1.2},
+  {id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:500,base:3.8,cost:375,costGrowth:COST_SCALE,incomeGrowth:1.22},
+  {id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:2200,base:15,cost:1600,costGrowth:COST_SCALE,incomeGrowth:1.23},
+  {id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:9000,base:72,cost:8000,costGrowth:COST_SCALE,incomeGrowth:1.24},
+  {id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:36000,base:310,cost:30000,costGrowth:COST_SCALE,incomeGrowth:1.25},
+  {id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:150000,base:1300,cost:140000,costGrowth:COST_SCALE,incomeGrowth:1.27},
   {id:'spaceport',name:'Spaceport',icon:'🚀',desc:'The town goes interstellar, and your profits follow.',unlock:650000,base:7800,cost:650000,costGrowth:COST_SCALE,incomeGrowth:1.28},
   {id:'railway',name:'Maglev Railway',icon:'🚄',desc:'Connect distant markets at astonishing speed.',unlock:2500000,base:22000,cost:2500000,costGrowth:COST_SCALE,incomeGrowth:1.29},
   {id:'resort',name:'Oceanfront Resort',icon:'🏝️',desc:'A luxury destination where every room earns.',unlock:10000000,base:110000,cost:10000000,costGrowth:COST_SCALE,incomeGrowth:1.3},
@@ -95,10 +95,10 @@ const defs = [
 ];
 
 const upgrades = [
-  {id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 1.6× cash.',cost:60,effect:'tap',mult:1.6},
-  {id:'recipes',icon:'🍋',name:'Secret Recipe',desc:'Lemonade income ×1.8 forever.',cost:350,effect:'lemonade',mult:1.8},
-  {id:'flyers',icon:'🗞️',name:'Local Flyers',desc:'All business income ×1.2.',cost:1200,effect:'global',mult:1.2},
-  {id:'service',icon:'⚙️',name:'Fast Service',desc:'All business income ×1.3.',cost:6500,effect:'global',mult:1.3},
+  {id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 1.4× cash.',cost:100,effect:'tap',mult:1.4},
+  {id:'recipes',icon:'🍋',name:'Secret Recipe',desc:'Lemonade income ×1.5 forever.',cost:750,effect:'lemonade',mult:1.5},
+  {id:'flyers',icon:'🗞️',name:'Local Flyers',desc:'All business income ×1.15.',cost:2500,effect:'global',mult:1.15},
+  {id:'service',icon:'⚙️',name:'Fast Service',desc:'All business income ×1.2.',cost:12000,effect:'global',mult:1.2},
   {id:'franchise',icon:'📈',name:'Franchise Playbook',desc:'All business income ×1.5.',cost:30000,effect:'global',mult:1.5},
   {id:'digital',icon:'💳',name:'Digital Checkout',desc:'Every tap earns another 1.8× cash.',cost:50000,effect:'tap',mult:1.8},
   {id:'franchise2',icon:'🌐',name:'Global Franchise',desc:'All business income ×1.6.',cost:300000,effect:'global',mult:1.6},
@@ -204,7 +204,7 @@ function legacyOfflineHours(){return legacyMilestones.reduce((sum,p)=>sum+(state
 function prestigeReward(){return Math.floor(Math.sqrt(Math.max(0,state.lifetime)/PRESTIGE_THRESHOLD)*1.5)}
 function tapMultiplier(){return upgrades.filter(u=>u.effect==='tap'&&owned(u.id)).reduce((v,u)=>v*u.mult,1)*legacyTapMultiplier()}
 function businessMilestoneMultiplier(){return (state.businessMilestonesClaimed||[]).reduce((mult,id)=>{const m=businessMilestoneDefs.find(x=>x.id===id);return mult*(1+(m?m.bonus||0:0))},1)}
-function businessIncome(d){const level=state.levels[d.id]||0;if(!level)return 0;let value=d.base*level*Math.pow(2,upgrades.filter(u=>u.effect==='business'&&u.business===d.id&&owned(u.id)).length);if(d.id==='lemonade'&&owned('recipes'))value*=2;return value*globalMultiplier()*prestigeMultiplier()*businessMilestoneMultiplier()}
+function businessIncome(d){const level=state.levels[d.id]||0;if(!level)return 0;let value=d.base*level*Math.pow(2,upgrades.filter(u=>u.effect==='business'&&u.business===d.id&&owned(u.id)).length);if(d.id==='lemonade'&&owned('recipes'))value*=upgrades.find(u=>u.id==='recipes').mult;return value*globalMultiplier()*prestigeMultiplier()*businessMilestoneMultiplier()}
 function baseIncome(){return defs.reduce((sum,d)=>sum+businessIncome(d),0)}
 function income(){return baseIncome()*(Date.now()<state.boostUntil?2:1)}
 function localDateKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -217,7 +217,7 @@ function buyQuantity(d){if(buyMode!=='max')return Number(buyMode);let lo=0,hi=1;
 function buyLabel(d,count){const verb=state.levels[d.id]?'Upgrade':'Buy';if(buyMode==='max')return count>0?verb+' ×'+count:verb+' Max';return count>1?verb+' ×'+count:verb}
 function say(msg){$('feed').textContent=msg;if(feedTimer)clearTimeout(feedTimer);feedTimer=setTimeout(()=>{$('feed').textContent=''},6500)}
 function ensureDailyMissions(){const today=localDateKey();if(state.missionDay!==today){const day=Number(today.slice(-2))||1;state.missionDay=today;state.missionProgress={taps:0,levels:0,rush:0};state.missionClaimed=[];state.missionTargets={taps:10+(day%3)*5,levels:3+(day%3)*2};}if(!state.missionProgress||typeof state.missionProgress!=='object')state.missionProgress={taps:0,levels:0,rush:0};if(!state.missionTargets||typeof state.missionTargets!=='object'){const day=Number(today.slice(-2))||1;state.missionTargets={taps:10+(day%3)*5,levels:3+(day%3)*2};}state.missionClaimed=Array.isArray(state.missionClaimed)?state.missionClaimed:[]}
-function missionDefs(){ensureDailyMissions();return [{id:'taps',icon:'👆',title:'Hands-on founder',desc:'Collect cash '+state.missionTargets.taps+' times.',target:state.missionTargets.taps,progress:state.missionProgress.taps||0,reward:Math.max(5,Math.floor(Math.max(100,state.lifetime)*.002))},{id:'levels',icon:'🏪',title:'Expand the empire',desc:'Buy '+state.missionTargets.levels+' business levels.',target:state.missionTargets.levels,progress:state.missionProgress.levels||0,reward:Math.max(10,Math.floor(Math.max(250,state.lifetime)*.003))},{id:'rush',icon:'⚡',title:'Rush hour',desc:'Activate Rush Hour once today.',target:1,progress:state.missionProgress.rush||0,reward:Math.max(20,Math.floor(Math.max(500,state.lifetime)*.005))}]}
+function missionDefs(){ensureDailyMissions();return [{id:'taps',icon:'👆',title:'Hands-on founder',desc:'Collect cash '+state.missionTargets.taps+' times.',target:state.missionTargets.taps,progress:state.missionProgress.taps||0,reward:Math.max(3,Math.floor(Math.max(100,state.lifetime)*.001))},{id:'levels',icon:'🏪',title:'Expand the empire',desc:'Buy '+state.missionTargets.levels+' business levels.',target:state.missionTargets.levels,progress:state.missionProgress.levels||0,reward:Math.max(5,Math.floor(Math.max(250,state.lifetime)*.0015))},{id:'rush',icon:'⚡',title:'Rush hour',desc:'Activate Rush Hour once today.',target:1,progress:state.missionProgress.rush||0,reward:Math.max(8,Math.floor(Math.max(500,state.lifetime)*.0025))}]}
 function renderDailyMissions(){const ms=missionDefs(),done=ms.filter(m=>state.missionClaimed.includes(m.id)).length;$('missionSummary').textContent=done+' / '+ms.length+' complete';$('dailyMissions').innerHTML=ms.map(m=>{const claimed=state.missionClaimed.includes(m.id),ready=m.progress>=m.target;return '<div class="mission '+(claimed?'done':'')+'"><div class="mission-icon" aria-hidden="true">'+(claimed?'✓':m.icon)+'</div><div class="mission-copy"><b>'+m.title+'</b><small>'+m.desc+'</small><div class="progress-track"><div class="progress-fill" style="width:'+Math.min(100,m.progress/m.target*100)+'%"></div></div><small>'+Math.min(m.progress,m.target)+' / '+m.target+' · Reward '+money(m.reward)+'</small></div><button class="buy" data-claim-mission="'+m.id+'" '+(!ready||claimed?'disabled':'')+'>'+(claimed?'Done':ready?'Claim':'In progress')+'</button></div>'}).join('');const goal=goals.find(g=>!state.claimed.includes(g.id));if(goal){const pct=Math.min(100,state.lifetime/goal.value*100);$('longGoalTitle').textContent=goal.title;$('longGoalDetail').textContent=goal.desc+' Reward: '+money(goal.reward);$('longGoalProgressText').textContent=Math.floor(pct)+'%';$('longGoalProgress').style.width=pct+'%'}else{$('longGoalTitle').textContent='All long-term goals claimed';$('longGoalDetail').textContent='You have completed every lifetime milestone.';$('longGoalProgressText').textContent='100%';$('longGoalProgress').style.width='100%'}document.querySelectorAll('[data-claim-mission]').forEach(btn=>btn.addEventListener('click',()=>claimMission(btn.dataset.claimMission)))}
 function claimMission(id){const m=missionDefs().find(x=>x.id===id);if(!m||m.progress<m.target||state.missionClaimed.includes(id))return;state.missionClaimed.push(id);state.cash+=m.reward;state.lifetime+=m.reward;render();save();say('Daily mission complete: '+m.title+'! '+money(m.reward)+' bonus added.')}
 function save(){if(window._importingSave)return;state.lastSeen=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){say('Could not save on this device. Check your browser storage settings.')}}
