@@ -52,7 +52,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 <div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash, own more businesses, and buy production-doubling tiers at 10, 25, 50, 100, 150 and 200 units.</p></div></div>
 <div class="milestones" id="milestones"></div><div class="section-head"><div><h2>🏪 Business milestones</h2><p>Build your portfolio to earn one-time cash bonuses each run.</p></div></div><div class="milestones" id="businessMilestones"></div></main>
 <main id="legacyScreen" class="game-screen" data-screen="legacy"><div class="section-head"><div><h2>👑 Empire prestige</h2><p>Restart your empire for a permanent income boost.</p></div></div>
-<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $250K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $250K</span></button></div></section>
+<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $350K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $350K</span></button></div></section>
 <div class="section-head"><div><h2>🧬 Prestige legacy</h2><p>Each prestige unlocks permanent account-wide milestones. Your legacy grows across resets.</p></div></div><section class="milestones" id="legacyPanel" aria-live="polite"></section>
 <div class="save-tools"><button type="button" class="save-tool" id="exportSaveBtn">⬇ Export save</button><button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button><input id="importSaveFile" type="file" accept=".json,application/json" hidden></div><div class="footer">Progress saves automatically on this device · Offline earnings start capped at 4 hours; prestige legacy extends this to 7 · No account required</div>
 </main>
@@ -66,63 +66,65 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 (()=>{
 'use strict';
 const SAVE_KEY='tiny-empire-save-v1';
-const PRESTIGE_THRESHOLD=250000;
-const COST_SCALE=1.20; // Baseline growth; midgame and late-game businesses scale more steeply.
-const defs=[
-{id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.25,cost:15,costGrowth:1.18,incomeGrowth:1.20},
-{id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:80,base:1.1,cost:50,costGrowth:1.18,incomeGrowth:1.22},
-{id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:500,base:4.5,cost:300,costGrowth:1.19,incomeGrowth:1.23},
-{id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:2200,base:20,cost:1500,costGrowth:1.19,incomeGrowth:1.24},
-{id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:9000,base:85,cost:6500,costGrowth:1.19,incomeGrowth:1.25},
-{id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:35000,base:350,cost:30000,costGrowth:1.20,incomeGrowth:1.26},
-{id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:150000,base:1500,cost:150000,costGrowth:1.20,incomeGrowth:1.27},
-{id:'spaceport',name:'Spaceport',icon:'🚀',desc:'The town goes interstellar, and your profits follow.',unlock:500000,base:7000,cost:500000,costGrowth:1.20,incomeGrowth:1.28},
-{id:'railway',name:'Maglev Railway',icon:'🚄',desc:'Connect distant markets at astonishing speed.',unlock:1000000,base:14000,cost:1000000,costGrowth:1.20,incomeGrowth:1.29},
-{id:'resort',name:'Oceanfront Resort',icon:'🏝️',desc:'A luxury destination where every room earns.',unlock:3000000,base:70000,cost:3000000,costGrowth:1.21,incomeGrowth:1.30},
-{id:'lunar',name:'Lunar Colony',icon:'🌕',desc:'Build a thriving economy beyond Earth.',unlock:15000000,base:280000,cost:15000000,costGrowth:1.21,incomeGrowth:1.31},
-{id:'mars',name:'Mars Terraforming',icon:'🪐',desc:'Turn a red planet into your next market.',unlock:60000000,base:1400000,cost:60000000,costGrowth:1.21,incomeGrowth:1.32},
-{id:'dyson',name:'Dyson Energy Grid',icon:'☀️',desc:'Harvest a star’s power to fuel your empire.',unlock:300000000,base:7000000,cost:300000000,costGrowth:1.21,incomeGrowth:1.33},
-{id:'quantum',name:'Quantum Network',icon:'🌀',desc:'Trade across realities with near-infinite reach.',unlock:1500000000,base:28000000,cost:1500000000,costGrowth:1.21,incomeGrowth:1.34},
-{id:'timemachine',name:'Time Machine Works',icon:'⏳',desc:'Turn tomorrow’s opportunities into today’s revenue.',unlock:100000000000,base:5000000000,cost:100000000000,costGrowth:1.22,incomeGrowth:1.35},
-{id:'multiverse',name:'Multiverse Exchange',icon:'🪐',desc:'Trade goods and ideas across parallel realities.',unlock:10000000000000,base:500000000000,cost:10000000000000,costGrowth:1.22,incomeGrowth:1.36},
-{id:'blackhole',name:'Black Hole Foundry',icon:'🕳️',desc:'Convert extreme gravity into industrial output.',unlock:1000000000000000,base:50000000000000,cost:1000000000000000,costGrowth:1.22,incomeGrowth:1.37},
-{id:'federation',name:'Galactic Federation',icon:'🛸',desc:'Coordinate a thousand civilizations under one economy.',unlock:100000000000000000,base:5000000000000000,cost:100000000000000000,costGrowth:1.23,incomeGrowth:1.38},
-{id:'universeforge',name:'Universe Forge',icon:'🌌',desc:'Manufacture new universes to expand your markets.',unlock:10000000000000000000,base:500000000000000000,cost:10000000000000000000,costGrowth:1.23,incomeGrowth:1.39},
-{id:'realityengine',name:'Reality Engine',icon:'⚙️',desc:'Rewrite the rules that govern production itself.',unlock:1e21,base:5e19,cost:1e21,costGrowth:1.23,incomeGrowth:1.40},
-{id:'omniverse',name:'Omniverse Network',icon:'♾️',desc:'Connect every possible timeline to your supply chain.',unlock:1e23,base:5e21,cost:1e23,costGrowth:1.24,incomeGrowth:1.41},
-{id:'eternal',name:'Eternal Empire',icon:'👑',desc:'Build an empire that outlasts time and reality.',unlock:1e25,base:5e23,cost:1e25,costGrowth:1.24,incomeGrowth:1.42}
+const PRESTIGE_THRESHOLD = 350000; // Slightly higher wall to match the grind-heavy balance pass.
+const COST_SCALE = 1.19; // Classic idle curve, but more grind-heavy
+
+const defs = [
+  {id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.22,cost:18,costGrowth:COST_SCALE,incomeGrowth:1.18},
+  {id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:80,base:.95,cost:60,costGrowth:COST_SCALE,incomeGrowth:1.2},
+  {id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:500,base:4.5,cost:300,costGrowth:COST_SCALE,incomeGrowth:1.22},
+  {id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:2200,base:18,cost:1300,costGrowth:COST_SCALE,incomeGrowth:1.23},
+  {id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:9000,base:85,cost:6500,costGrowth:COST_SCALE,incomeGrowth:1.24},
+  {id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:36000,base:360,cost:26000,costGrowth:COST_SCALE,incomeGrowth:1.25},
+  {id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:150000,base:1500,cost:120000,costGrowth:COST_SCALE,incomeGrowth:1.27},
+  {id:'spaceport',name:'Spaceport',icon:'🚀',desc:'The town goes interstellar, and your profits follow.',unlock:650000,base:7800,cost:650000,costGrowth:COST_SCALE,incomeGrowth:1.28},
+  {id:'railway',name:'Maglev Railway',icon:'🚄',desc:'Connect distant markets at astonishing speed.',unlock:2500000,base:22000,cost:2500000,costGrowth:COST_SCALE,incomeGrowth:1.29},
+  {id:'resort',name:'Oceanfront Resort',icon:'🏝️',desc:'A luxury destination where every room earns.',unlock:10000000,base:110000,cost:10000000,costGrowth:COST_SCALE,incomeGrowth:1.3},
+  {id:'lunar',name:'Lunar Colony',icon:'🌕',desc:'Build a thriving economy beyond Earth.',unlock:40000000,base:550000,cost:40000000,costGrowth:COST_SCALE,incomeGrowth:1.31},
+  {id:'mars',name:'Mars Terraforming',icon:'🪐',desc:'Turn a red planet into your next market.',unlock:150000000,base:2600000,cost:150000000,costGrowth:COST_SCALE,incomeGrowth:1.32},
+  {id:'dyson',name:'Dyson Energy Grid',icon:'☀️',desc:'Harvest a star’s power to fuel your empire.',unlock:600000000,base:12000000,cost:600000000,costGrowth:COST_SCALE,incomeGrowth:1.33},
+  {id:'quantum',name:'Quantum Network',icon:'🌀',desc:'Trade across realities with near-infinite reach.',unlock:2500000000,base:70000000,cost:2500000000,costGrowth:COST_SCALE,incomeGrowth:1.34},
+  {id:'timemachine',name:'Time Machine Works',icon:'⏳',desc:'Turn tomorrow’s opportunities into today’s revenue.',unlock:1e12,base:5e9,cost:1e12,costGrowth:COST_SCALE,incomeGrowth:1.35},
+  {id:'multiverse',name:'Multiverse Exchange',icon:'🪐',desc:'Trade goods and ideas across parallel realities.',unlock:1e15,base:5e12,cost:1e15,costGrowth:COST_SCALE,incomeGrowth:1.36},
+  {id:'blackhole',name:'Black Hole Foundry',icon:'🕳️',desc:'Convert extreme gravity into industrial output.',unlock:1e18,base:5e15,cost:1e18,costGrowth:COST_SCALE,incomeGrowth:1.37},
+  {id:'federation',name:'Galactic Federation',icon:'🛸',desc:'Coordinate a thousand civilizations under one economy.',unlock:1e21,base:5e18,cost:1e21,costGrowth:COST_SCALE,incomeGrowth:1.38},
+  {id:'universeforge',name:'Universe Forge',icon:'🌌',desc:'Manufacture new universes to expand your markets.',unlock:1e24,base:5e21,cost:1e24,costGrowth:COST_SCALE,incomeGrowth:1.39},
+  {id:'realityengine',name:'Reality Engine',icon:'⚙️',desc:'Rewrite the rules that govern production itself.',unlock:1e27,base:5e24,cost:1e27,costGrowth:COST_SCALE,incomeGrowth:1.4},
+  {id:'omniverse',name:'Omniverse Network',icon:'♾️',desc:'Connect every possible timeline to your supply chain.',unlock:1e30,base:5e27,cost:1e30,costGrowth:COST_SCALE,incomeGrowth:1.41},
+  {id:'eternal',name:'Eternal Empire',icon:'👑',desc:'Build an empire that outlasts time and reality.',unlock:1e33,base:5e30,cost:1e33,costGrowth:COST_SCALE,incomeGrowth:1.42}
 ];
-const upgrades=[
-{id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 1.6× cash.',cost:60,effect:'tap',mult:1.6},
-{id:'recipes',icon:'🍋',name:'Secret Recipe',desc:'Lemonade income ×1.8 forever.',cost:350,effect:'lemonade',mult:1.8},
-{id:'flyers',icon:'🗞️',name:'Local Flyers',desc:'All business income ×1.2.',cost:1200,effect:'global',mult:1.2},
-{id:'service',icon:'⚙️',name:'Fast Service',desc:'All business income ×1.3.',cost:6000,effect:'global',mult:1.3},
-{id:'franchise',icon:'📈',name:'Franchise Playbook',desc:'All business income ×1.5.',cost:25000,effect:'global',mult:1.5},
-{id:'digital',icon:'💳',name:'Digital Checkout',desc:'Every tap earns another 2× cash.',cost:80000,effect:'tap',mult:2},
-{id:'franchise2',icon:'🌐',name:'Global Franchise',desc:'All business income ×1.3.',cost:1200000,effect:'global',mult:1.3},
-{id:'automation',icon:'🤖',name:'Smart Automation',desc:'All business income ×1.5.',cost:5000000,effect:'global',mult:1.5},
-{id:'orbital',icon:'🛰️',name:'Orbital Logistics',desc:'All business income ×1.6.',cost:25000000,effect:'global',mult:1.6},
-{id:'fusion',icon:'⚛️',name:'Fusion Power',desc:'All business income ×1.8.',cost:125000000,effect:'global',mult:1.8},
-{id:'neural',icon:'🧠',name:'Neural Management',desc:'All business income ×2.',cost:625000000,effect:'global',mult:2},
-{id:'nanotech',icon:'🧬',name:'Nanotech Manufacturing',desc:'All business income ×2.2.',cost:3000000000,effect:'global',mult:2.2},
-{id:'tapbot',icon:'🦾',name:'Auto-Collector Drones',desc:'Every tap earns another 3× cash.',cost:1500000,effect:'tap',mult:3},
-{id:'singularity',icon:'✨',name:'Singularity Engine',desc:'All business income ×2.5.',cost:15000000000,effect:'global',mult:2.5},
-{id:'cinemaBoost',icon:'🎥',name:'Studio Blockbusters',desc:'Grand Cinema income ×2.',cost:150000,effect:'business',business:'cinema',threshold:1},
-{id:'spaceportBoost',icon:'🛸',name:'Orbital Tourism',desc:'Spaceport income ×2.',cost:500000,effect:'business',business:'spaceport',threshold:1},
-{id:'railwayBoost',icon:'🧭',name:'Maglev Scheduling',desc:'Maglev Railway income ×2.',cost:750000,effect:'business',business:'railway',threshold:1},
-{id:'resortBoost',icon:'🛎️',name:'Resort Booking AI',desc:'Oceanfront Resort income ×2.',cost:5000000,effect:'business',business:'resort',threshold:1},
-{id:'lunarBoost',icon:'🧪',name:'Lunar Helium Mining',desc:'Lunar Colony income ×2.',cost:25000000,effect:'business',business:'lunar',threshold:1},
-{id:'marsBoost',icon:'🏗️',name:'Martian Supply Chain',desc:'Mars Terraforming income ×2.',cost:125000000,effect:'business',business:'mars',threshold:1},
-{id:'dysonBoost',icon:'🔆',name:'Stellar Fusion Matrix',desc:'Dyson Energy Grid income ×2.',cost:625000000,effect:'business',business:'dyson',threshold:1},
-{id:'quantumBoost',icon:'🌀',name:'Quantum Entanglement',desc:'Quantum Network income ×2.',cost:2500000000,effect:'business',business:'quantum',threshold:1},
-{id:'timeBoost',icon:'⏳',name:'Chrono Arbitrage',desc:'Time Machine Works income ×2.',cost:500000000000,effect:'business',business:'timemachine',threshold:1},
-{id:'multiverseBoost',icon:'🪐',name:'Cross-Reality Markets',desc:'Multiverse Exchange income ×2.',cost:50000000000000,effect:'business',business:'multiverse',threshold:1},
-{id:'blackholeBoost',icon:'🕳️',name:'Event Horizon Mining',desc:'Black Hole Foundry income ×2.',cost:5000000000000000,effect:'business',business:'blackhole',threshold:1},
-{id:'federationBoost',icon:'🛸',name:'Galactic Trade Charter',desc:'Galactic Federation income ×2.',cost:500000000000000000,effect:'business',business:'federation',threshold:1},
-{id:'universeBoost',icon:'🌌',name:'Cosmic Fabrication',desc:'Universe Forge income ×2.',cost:5e19,effect:'business',business:'universeforge',threshold:1},
-{id:'realityBoost',icon:'⚙️',name:'Reality Optimization',desc:'Reality Engine income ×2.',cost:5e21,effect:'business',business:'realityengine',threshold:1},
-{id:'omniverseBoost',icon:'♾️',name:'Omniversal Logistics',desc:'Omniverse Network income ×2.',cost:5e23,effect:'business',business:'omniverse',threshold:1},
-{id:'eternalBoost',icon:'👑',name:'Eternal Dividend',desc:'Eternal Empire income ×2.',cost:5e25,effect:'business',business:'eternal',threshold:1}
+
+const upgrades = [
+  {id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 1.6× cash.',cost:60,effect:'tap',mult:1.6},
+  {id:'recipes',icon:'🍋',name:'Secret Recipe',desc:'Lemonade income ×1.8 forever.',cost:350,effect:'lemonade',mult:1.8},
+  {id:'flyers',icon:'🗞️',name:'Local Flyers',desc:'All business income ×1.2.',cost:1200,effect:'global',mult:1.2},
+  {id:'service',icon:'⚙️',name:'Fast Service',desc:'All business income ×1.3.',cost:6500,effect:'global',mult:1.3},
+  {id:'franchise',icon:'📈',name:'Franchise Playbook',desc:'All business income ×1.5.',cost:30000,effect:'global',mult:1.5},
+  {id:'digital',icon:'💳',name:'Digital Checkout',desc:'Every tap earns another 1.8× cash.',cost:50000,effect:'tap',mult:1.8},
+  {id:'franchise2',icon:'🌐',name:'Global Franchise',desc:'All business income ×1.6.',cost:300000,effect:'global',mult:1.6},
+  {id:'automation',icon:'🤖',name:'Smart Automation',desc:'All business income ×1.8.',cost:1800000,effect:'global',mult:1.8},
+  {id:'orbital',icon:'🛰️',name:'Orbital Logistics',desc:'All business income ×2.0.',cost:10000000,effect:'global',mult:2.0},
+  {id:'fusion',icon:'⚛️',name:'Fusion Power',desc:'All business income ×2.2.',cost:65000000,effect:'global',mult:2.2},
+  {id:'neural',icon:'🧠',name:'Neural Management',desc:'All business income ×2.5.',cost:350000000,effect:'global',mult:2.5},
+  {id:'nanotech',icon:'🧬',name:'Nanotech Manufacturing',desc:'All business income ×3.',cost:1500000000,effect:'global',mult:3},
+  {id:'tapbot',icon:'🦾',name:'Auto-Collector Drones',desc:'Every tap earns another 2.2× cash.',cost:500000,effect:'tap',mult:2.2},
+  {id:'singularity',icon:'✨',name:'Singularity Engine',desc:'All business income ×3.5.',cost:8000000000,effect:'global',mult:3.5},
+  {id:'cinemaBoost',icon:'🎥',name:'Studio Blockbusters',desc:'Grand Cinema income ×2.',cost:150000,effect:'business',business:'cinema',threshold:1},
+  {id:'spaceportBoost',icon:'🛸',name:'Orbital Tourism',desc:'Spaceport income ×2.',cost:500000,effect:'business',business:'spaceport',threshold:1},
+  {id:'railwayBoost',icon:'🧭',name:'Maglev Scheduling',desc:'Maglev Railway income ×2.',cost:750000,effect:'business',business:'railway',threshold:1},
+  {id:'resortBoost',icon:'🛎️',name:'Resort Booking AI',desc:'Oceanfront Resort income ×2.',cost:5000000,effect:'business',business:'resort',threshold:1},
+  {id:'lunarBoost',icon:'🧪',name:'Lunar Helium Mining',desc:'Lunar Colony income ×2.',cost:25000000,effect:'business',business:'lunar',threshold:1},
+  {id:'marsBoost',icon:'🏗️',name:'Martian Supply Chain',desc:'Mars Terraforming income ×2.',cost:125000000,effect:'business',business:'mars',threshold:1},
+  {id:'dysonBoost',icon:'🔆',name:'Stellar Fusion Matrix',desc:'Dyson Energy Grid income ×2.',cost:625000000,effect:'business',business:'dyson',threshold:1},
+  {id:'quantumBoost',icon:'🌀',name:'Quantum Entanglement',desc:'Quantum Network income ×2.',cost:2500000000,effect:'business',business:'quantum',threshold:1},
+  {id:'timeBoost',icon:'⏳',name:'Chrono Arbitrage',desc:'Time Machine Works income ×2.',cost:500000000000,effect:'business',business:'timemachine',threshold:1},
+  {id:'multiverseBoost',icon:'🪐',name:'Cross-Reality Markets',desc:'Multiverse Exchange income ×2.',cost:50000000000000,effect:'business',business:'multiverse',threshold:1},
+  {id:'blackholeBoost',icon:'🕳️',name:'Event Horizon Mining',desc:'Black Hole Foundry income ×2.',cost:5000000000000000,effect:'business',business:'blackhole',threshold:1},
+  {id:'federationBoost',icon:'🛸',name:'Galactic Trade Charter',desc:'Galactic Federation income ×2.',cost:500000000000000000,effect:'business',business:'federation',threshold:1},
+  {id:'universeBoost',icon:'🌌',name:'Cosmic Fabrication',desc:'Universe Forge income ×2.',cost:5e19,effect:'business',business:'universeforge',threshold:1},
+  {id:'realityBoost',icon:'⚙️',name:'Reality Optimization',desc:'Reality Engine income ×2.',cost:5e21,effect:'business',business:'realityengine',threshold:1},
+  {id:'omniverseBoost',icon:'♾️',name:'Omniversal Logistics',desc:'Omniverse Network income ×2.',cost:5e23,effect:'business',business:'omniverse',threshold:1},
+  {id:'eternalBoost',icon:'👑',name:'Eternal Dividend',desc:'Eternal Empire income ×2.',cost:5e25,effect:'business',business:'eternal',threshold:1}
 ];
 const tierThresholds=[10,25,50,100,150,200];
 // Tier contracts are priced against the cumulative cost of reaching each level, rather than being cheap flat bonuses.
@@ -156,7 +158,11 @@ const goals=[
 {id:'g1e19',value:1e19,title:'Universe architect',desc:'Earn $10 quintillion in one run.',reward:5e17},
 {id:'g1e21',value:1e21,title:'Reality investor',desc:'Earn $1 sextillion in one run.',reward:5e19},
 {id:'g1e23',value:1e23,title:'Omniverse owner',desc:'Earn $100 sextillion in one run.',reward:5e21},
-{id:'g1e25',value:1e25,title:'Eternal empire',desc:'Earn $10 septillion in one run.',reward:5e23}
+{id:'g1e25',value:1e25,title:'Eternal empire',desc:'Earn $10 septillion in one run.',reward:5e23},
+{id:'g1e27',value:1e27,title:'Reality engine architect',desc:'Earn $1 octillion in one run.',reward:5e25},
+{id:'g1e29',value:1e29,title:'Omniverse industrialist',desc:'Earn $100 octillion in one run.',reward:5e27},
+{id:'g1e31',value:1e31,title:'Master of all timelines',desc:'Earn $10 nonillion in one run.',reward:5e29},
+{id:'g1e33',value:1e33,title:'The eternal frontier',desc:'Earn $1 decillion in one run.',reward:5e31}
 ];
 const ranks=[{value:0,name:'Starter',icon:'🌱'},{value:100,name:'Shopkeeper',icon:'🧃'},{value:750,name:'Entrepreneur',icon:'🧢'},{value:3000,name:'Tycoon',icon:'💼'},{value:12000,name:'Magnate',icon:'🏙️'},{value:50000,name:'Empire legend',icon:'👑'},{value:100000,name:'Industry titan',icon:'🎬'},{value:500000,name:'Cosmic mogul',icon:'🚀'},{value:1000000,name:'Universal tycoon',icon:'🌌'},{value:2500000,name:'Planetary mogul',icon:'🏝️'},{value:10000000,name:'Lunar lord',icon:'🌕'},{value:50000000,name:'Martian magnate',icon:'🪐'},{value:250000000,name:'Stellar architect',icon:'☀️'},{value:1000000000,name:'Quantum tycoon',icon:'🌀'},{value:10000000000,name:'Reality ruler',icon:'🪄'},{value:100000000000,name:'Multiverse legend',icon:'♾️'},{value:1e12,name:'Temporal tycoon',icon:'⏳'},{value:1e13,name:'Multiverse trader',icon:'🪐'},{value:1e15,name:'Gravity magnate',icon:'🕳️'},{value:1e17,name:'Galactic chancellor',icon:'🛸'},{value:1e19,name:'Universe architect',icon:'🌌'},{value:1e21,name:'Reality engineer',icon:'⚙️'},{value:1e23,name:'Omniverse sovereign',icon:'♾️'},{value:1e25,name:'Eternal emperor',icon:'👑'}];
 let state={cash:0,lifetime:0,levels:{lemonade:1,snack:0,coffee:0,foodtruck:0,arcade:0,mall:0,cinema:0,spaceport:0,railway:0,resort:0,lunar:0,mars:0,dyson:0,quantum:0,timemachine:0,multiverse:0,blackhole:0,federation:0,universeforge:0,realityengine:0,omniverse:0,eternal:0},owned:[],claimed:[],businessMilestonesClaimed:[],prestigePoints:0,prestigeCount:0,lastSeen:Date.now(),dailyClaimDate:'',dailyStreak:0,boostUntil:0,boostCooldownUntil:0,missionDay:'',missionProgress:{taps:0,levels:0,rush:0},missionClaimed:[]};
