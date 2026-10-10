@@ -125,7 +125,9 @@ const upgrades=[
 {id:'eternalBoost',icon:'👑',name:'Eternal Dividend',desc:'Eternal Empire income ×2.',cost:5e25,effect:'business',business:'eternal',threshold:1}
 ];
 const tierThresholds=[10,25,50,100,150,200];
-const tierCostMultipliers=[10,50,500,50000,5000000,500000000];
+// Tier contracts are priced against the cumulative cost of reaching each level, rather than being cheap flat bonuses.
+// With 15% per-level cost growth, these approximate the investment needed to build each tier: 10, 25, 50, 100, 150, 200.
+const tierCostMultipliers=[25,300,12000,1300000,140000000,15000000000];
 const tierNames=['Starter','Established','Regional','National','Global','Legendary'];
 upgrades.push(...defs.flatMap(d=>tierThresholds.map((threshold,i)=>({id:'tier_'+d.id+'_'+threshold,icon:d.icon,name:d.name+' · '+tierNames[i]+' contract',desc:'Own '+threshold+' '+d.name+' to unlock. Doubles this business production permanently.',cost:Math.ceil(d.cost*tierCostMultipliers[i]),effect:'business',business:d.id,mult:2,threshold,tierIndex:i}))));
 const goals=[
