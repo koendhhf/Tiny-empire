@@ -31,7 +31,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 <div class="section-head"><div><h2>🏘️ Your businesses</h2><p>Buy businesses, then level them up for more income.</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="tiny-note" id="nextUnlock">Next unlock: $25</div><div class="buy-modes" role="group" aria-label="Purchase quantity"><button type="button" class="mode-btn active" data-buy-mode="1" aria-pressed="true">Buy 1</button><button type="button" class="mode-btn" data-buy-mode="10" aria-pressed="false">Buy 10</button><button type="button" class="mode-btn" data-buy-mode="max" aria-pressed="false">Buy Max</button></div></div></div>
 <section class="era-card" aria-live="polite"><div class="era-top"><span class="era-icon" id="eraIcon">🌱</span><div class="era-copy"><b id="eraName">Village Era</b><small id="eraDesc">Start small. Build something enormous.</small></div><span class="era-next" id="eraNext">Next era: $25</span></div><div class="progress-track"><div class="progress-fill" id="eraProgress" style="width:0%"></div></div></section>
 <div class="businesses" id="businesses"></div>
-<div class="section-head"><div><h2>🧰 Empire upgrades</h2><p>Permanent boosts. Choose what helps you grow.</p></div></div>
+<div class="section-head"><div><h2>🧰 Empire upgrades</h2><p>Research and technology. Build your edge each run; prestige lets you restart stronger.</p></div></div>
 <div class="upgrades" id="upgrades"></div>
 <div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash to claim bonus money.</p></div></div>
 <div class="milestones" id="milestones"></div>
@@ -100,7 +100,7 @@ const ranks=[{value:0,name:'Starter',icon:'🌱'},{value:100,name:'Shopkeeper',i
 let state={cash:0,lifetime:0,levels:{lemonade:1,snack:0,coffee:0,foodtruck:0,arcade:0,mall:0,cinema:0,spaceport:0,railway:0,resort:0,lunar:0,mars:0,dyson:0,quantum:0},owned:[],claimed:[],prestigePoints:0,prestigeCount:0,lastSeen:Date.now(),dailyClaimDate:'',dailyStreak:0,boostUntil:0,boostCooldownUntil:0};
 let lastTick=Date.now(),feedTimer=null,buyMode='1';
 const $=id=>document.getElementById(id);
-function money(n){if(n>=1e9)return '$'+(n/1e9).toFixed(2).replace(/\.00$/,'')+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2).replace(/\.00$/,'')+'M';if(n>=1e4)return '$'+(n/1e3).toFixed(1).replace(/\.0$/,'')+'K';return '$'+Math.floor(n).toLocaleString('en-US')}
+function money(n){if(n>=1e15)return '$'+(n/1e15).toFixed(2).replace(/\.00$/,'')+'Q';if(n>=1e12)return '$'+(n/1e12).toFixed(2).replace(/\.00$/,'')+'T';if(n>=1e9)return '$'+(n/1e9).toFixed(2).replace(/\.00$/,'')+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2).replace(/\.00$/,'')+'M';if(n>=1e4)return '$'+(n/1e3).toFixed(1).replace(/\.0$/,'')+'K';return '$'+Math.floor(n).toLocaleString('en-US')}
 function precise(n){if(n>=1e6)return money(n);return '$'+(n<10?n.toFixed(1):n.toLocaleString('en-US',{maximumFractionDigits:0}))}
 function owned(id){return state.owned.includes(id)}
 function globalMultiplier(){return upgrades.filter(u=>u.effect==='global'&&owned(u.id)).reduce((v,u)=>v*u.mult,1)}
@@ -112,7 +112,7 @@ function baseIncome(){return defs.reduce((sum,d)=>sum+businessIncome(d),0)}
 function income(){return baseIncome()*(Date.now()<state.boostUntil?2:1)}
 function localDateKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function yesterdayDateKey(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function dailyReward(){const base=Math.max(10,Math.min(25000,Math.floor(10+baseIncome()*20)));const nextStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;return Math.floor(base*(1+Math.min(6,Math.max(0,nextStreak-1))*.25))}
+function dailyReward(){const base=Math.max(10,Math.min(1000000000000,Math.floor(10+baseIncome()*20)));const nextStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;return Math.floor(base*(1+Math.min(6,Math.max(0,nextStreak-1))*.25))}
 function updateSpecialButtons(){const now=Date.now(),active=now<state.boostUntil,cooldown=now<state.boostCooldownUntil,claimed=state.dailyClaimDate===localDateKey();$('boostBtn').disabled=active||cooldown;$('boostHint').textContent=active?'ACTIVE · '+Math.ceil((state.boostUntil-now)/1000)+' sec':cooldown?'Ready in '+Math.ceil((state.boostCooldownUntil-now)/1000)+' sec':'2× income for 30 sec';$('boostBtn').style.opacity=(active||cooldown)?'.65':'1';$('dailyBtn').disabled=claimed;$('dailyHint').textContent=claimed?'Come back tomorrow · '+(state.dailyStreak||1)+'-day streak':'Claim '+money(dailyReward())+' · '+(state.dailyClaimDate===yesterdayDateKey()?(state.dailyStreak||0)+1:1)+'-day streak'}
 function cost(d){return Math.ceil(d.cost*Math.pow(d.costGrowth,state.levels[d.id]||0))}
 function purchaseCost(d,count){let total=0,level=state.levels[d.id]||0;for(let i=0;i<count;i++)total+=Math.ceil(d.cost*Math.pow(d.costGrowth,level+i));return total}
