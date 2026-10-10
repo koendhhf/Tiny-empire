@@ -33,7 +33,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 <div class="businesses" id="businesses"></div>
 <div class="section-head"><div><h2>🧰 Empire upgrades</h2><p>Research and technology. Build your edge each run; prestige lets you restart stronger.</p></div></div>
 <div class="upgrades" id="upgrades"></div>
-<div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash to claim bonus money.</p></div></div>
+<div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash, own more businesses, and buy production-doubling tiers at 10, 25, 50, 100, 150 and 200 units.</p></div></div>
 <div class="milestones" id="milestones"></div>
 <div class="section-head"><div><h2>👑 Empire prestige</h2><p>Restart your empire for a permanent income boost.</p></div></div>
 <section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $50K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $50K</span></button></div></section>
@@ -47,19 +47,19 @@ const SAVE_KEY='tiny-empire-save-v1';
 const PRESTIGE_THRESHOLD=50000;
 const defs=[
 {id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.4,cost:10,costGrowth:1.15,incomeGrowth:1.20},
-{id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:25,base:1.8,cost:25,costGrowth:1.16,incomeGrowth:1.22},
-{id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:180,base:8,cost:180,costGrowth:1.17,incomeGrowth:1.23},
-{id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:750,base:35,cost:750,costGrowth:1.18,incomeGrowth:1.24},
-{id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:3000,base:150,cost:3000,costGrowth:1.19,incomeGrowth:1.25},
-{id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:12000,base:650,cost:12000,costGrowth:1.20,incomeGrowth:1.26},
-{id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:75000,base:2600,cost:75000,costGrowth:1.21,incomeGrowth:1.27},
-{id:'spaceport',name:'Spaceport',icon:'🚀',desc:'The town goes interstellar, and your profits follow.',unlock:250000,base:12500,cost:250000,costGrowth:1.22,incomeGrowth:1.28},
-{id:'railway',name:'Maglev Railway',icon:'🚄',desc:'Connect distant markets at astonishing speed.',unlock:500000,base:52000,cost:500000,costGrowth:1.23,incomeGrowth:1.29},
-{id:'resort',name:'Oceanfront Resort',icon:'🏝️',desc:'A luxury destination where every room earns.',unlock:2500000,base:280000,cost:2500000,costGrowth:1.24,incomeGrowth:1.30},
-{id:'lunar',name:'Lunar Colony',icon:'🌕',desc:'Build a thriving economy beyond Earth.',unlock:10000000,base:1600000,cost:10000000,costGrowth:1.25,incomeGrowth:1.31},
-{id:'mars',name:'Mars Terraforming',icon:'🪐',desc:'Turn a red planet into your next market.',unlock:50000000,base:10500000,cost:50000000,costGrowth:1.26,incomeGrowth:1.32},
-{id:'dyson',name:'Dyson Energy Grid',icon:'☀️',desc:'Harvest a star’s power to fuel your empire.',unlock:250000000,base:75000000,cost:250000000,costGrowth:1.27,incomeGrowth:1.33},
-{id:'quantum',name:'Quantum Network',icon:'🌀',desc:'Trade across realities with near-infinite reach.',unlock:1000000000,base:550000000,cost:1000000000,costGrowth:1.28,incomeGrowth:1.34}
+{id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:25,base:1.8,cost:25,costGrowth:1.15,incomeGrowth:1.22},
+{id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:180,base:8,cost:180,costGrowth:1.15,incomeGrowth:1.23},
+{id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:750,base:35,cost:750,costGrowth:1.15,incomeGrowth:1.24},
+{id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:3000,base:150,cost:3000,costGrowth:1.15,incomeGrowth:1.25},
+{id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:12000,base:650,cost:12000,costGrowth:1.15,incomeGrowth:1.26},
+{id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:75000,base:2600,cost:75000,costGrowth:1.15,incomeGrowth:1.27},
+{id:'spaceport',name:'Spaceport',icon:'🚀',desc:'The town goes interstellar, and your profits follow.',unlock:250000,base:12500,cost:250000,costGrowth:1.15,incomeGrowth:1.28},
+{id:'railway',name:'Maglev Railway',icon:'🚄',desc:'Connect distant markets at astonishing speed.',unlock:500000,base:52000,cost:500000,costGrowth:1.15,incomeGrowth:1.29},
+{id:'resort',name:'Oceanfront Resort',icon:'🏝️',desc:'A luxury destination where every room earns.',unlock:2500000,base:280000,cost:2500000,costGrowth:1.15,incomeGrowth:1.30},
+{id:'lunar',name:'Lunar Colony',icon:'🌕',desc:'Build a thriving economy beyond Earth.',unlock:10000000,base:1600000,cost:10000000,costGrowth:1.15,incomeGrowth:1.31},
+{id:'mars',name:'Mars Terraforming',icon:'🪐',desc:'Turn a red planet into your next market.',unlock:50000000,base:10500000,cost:50000000,costGrowth:1.15,incomeGrowth:1.32},
+{id:'dyson',name:'Dyson Energy Grid',icon:'☀️',desc:'Harvest a star’s power to fuel your empire.',unlock:250000000,base:75000000,cost:250000000,costGrowth:1.15,incomeGrowth:1.33},
+{id:'quantum',name:'Quantum Network',icon:'🌀',desc:'Trade across realities with near-infinite reach.',unlock:1000000000,base:550000000,cost:1000000000,costGrowth:1.15,incomeGrowth:1.34}
 ];
 const upgrades=[
 {id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 2× cash.',cost:20,effect:'tap',mult:2},
@@ -77,6 +77,10 @@ const upgrades=[
 {id:'tapbot',icon:'🦾',name:'Auto-Collector Drones',desc:'Every tap earns another 5× cash.',cost:250000,effect:'tap',mult:5},
 {id:'singularity',icon:'✨',name:'Singularity Engine',desc:'All business income ×8.',cost:5000000000,effect:'global',mult:8}
 ];
+const tierThresholds=[10,25,50,100,150,200];
+const tierCostMultipliers=[10,50,500,50000,5000000,500000000];
+const tierNames=['Starter','Established','Regional','National','Global','Legendary'];
+upgrades.push(...defs.flatMap(d=>tierThresholds.map((threshold,i)=>({id:'tier_'+d.id+'_'+threshold,icon:d.icon,name:d.name+' · '+tierNames[i]+' contract',desc:'Own '+threshold+' '+d.name+' to unlock. Doubles this business production permanently.',cost:Math.ceil(d.cost*tierCostMultipliers[i]),effect:'business',business:d.id,mult:2,threshold,tierIndex:i}))));
 const goals=[
 {id:'g10',value:10,title:'First pocket money',desc:'Earn $10 in total.',reward:5},
 {id:'g25',value:25,title:'A growing little town',desc:'Earn $25 in total.',reward:10},
@@ -100,23 +104,23 @@ const ranks=[{value:0,name:'Starter',icon:'🌱'},{value:100,name:'Shopkeeper',i
 let state={cash:0,lifetime:0,levels:{lemonade:1,snack:0,coffee:0,foodtruck:0,arcade:0,mall:0,cinema:0,spaceport:0,railway:0,resort:0,lunar:0,mars:0,dyson:0,quantum:0},owned:[],claimed:[],prestigePoints:0,prestigeCount:0,lastSeen:Date.now(),dailyClaimDate:'',dailyStreak:0,boostUntil:0,boostCooldownUntil:0};
 let lastTick=Date.now(),feedTimer=null,buyMode='1';
 const $=id=>document.getElementById(id);
-function money(n){if(n>=1e15)return '$'+(n/1e15).toFixed(2).replace(/\.00$/,'')+'Q';if(n>=1e12)return '$'+(n/1e12).toFixed(2).replace(/\.00$/,'')+'T';if(n>=1e9)return '$'+(n/1e9).toFixed(2).replace(/\.00$/,'')+'B';if(n>=1e6)return '$'+(n/1e6).toFixed(2).replace(/\.00$/,'')+'M';if(n>=1e4)return '$'+(n/1e3).toFixed(1).replace(/\.0$/,'')+'K';return '$'+Math.floor(n).toLocaleString('en-US')}
+function money(n){for(const [v,s] of [[1e33,'Dc'],[1e30,'No'],[1e27,'Oc'],[1e24,'Sp'],[1e21,'Sx'],[1e18,'Qi'],[1e15,'Q'],[1e12,'T'],[1e9,'B'],[1e6,'M']])if(n>=v){const a=(n/v).toFixed(2);return '$'+(a.endsWith('.00')?a.slice(0,-3):a)+s}if(n>=1e4){const a=(n/1e3).toFixed(1);return '$'+(a.endsWith('.0')?a.slice(0,-2):a)+'K'}return '$'+Math.floor(n).toLocaleString('en-US')}
 function precise(n){if(n>=1e6)return money(n);return '$'+(n<10?n.toFixed(1):n.toLocaleString('en-US',{maximumFractionDigits:0}))}
 function owned(id){return state.owned.includes(id)}
 function globalMultiplier(){return upgrades.filter(u=>u.effect==='global'&&owned(u.id)).reduce((v,u)=>v*u.mult,1)}
 function prestigeMultiplier(){return 1+Math.max(0,state.prestigePoints)*.1}
 function prestigeReward(){return Math.floor(Math.sqrt(Math.max(0,state.lifetime)/PRESTIGE_THRESHOLD))}
 function tapMultiplier(){return upgrades.filter(u=>u.effect==='tap'&&owned(u.id)).reduce((v,u)=>v*u.mult,1)}
-function businessIncome(d){const level=state.levels[d.id]||0;if(!level)return 0;let value=d.base*Math.pow(d.incomeGrowth,level-1)*level;if(d.id==='lemonade'&&owned('recipes'))value*=2;return value*globalMultiplier()*prestigeMultiplier()}
+function businessIncome(d){const level=state.levels[d.id]||0;if(!level)return 0;let value=d.base*level*Math.pow(2,upgrades.filter(u=>u.effect==='business'&&u.business===d.id&&owned(u.id)).length);if(d.id==='lemonade'&&owned('recipes'))value*=2;return value*globalMultiplier()*prestigeMultiplier()}
 function baseIncome(){return defs.reduce((sum,d)=>sum+businessIncome(d),0)}
 function income(){return baseIncome()*(Date.now()<state.boostUntil?2:1)}
 function localDateKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function yesterdayDateKey(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function dailyReward(){const base=Math.max(10,Math.min(1000000000000,Math.floor(10+baseIncome()*20)));const nextStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;return Math.floor(base*(1+Math.min(6,Math.max(0,nextStreak-1))*.25))}
 function updateSpecialButtons(){const now=Date.now(),active=now<state.boostUntil,cooldown=now<state.boostCooldownUntil,claimed=state.dailyClaimDate===localDateKey();$('boostBtn').disabled=active||cooldown;$('boostHint').textContent=active?'ACTIVE · '+Math.ceil((state.boostUntil-now)/1000)+' sec':cooldown?'Ready in '+Math.ceil((state.boostCooldownUntil-now)/1000)+' sec':'2× income for 30 sec';$('boostBtn').style.opacity=(active||cooldown)?'.65':'1';$('dailyBtn').disabled=claimed;$('dailyHint').textContent=claimed?'Come back tomorrow · '+(state.dailyStreak||1)+'-day streak':'Claim '+money(dailyReward())+' · '+(state.dailyClaimDate===yesterdayDateKey()?(state.dailyStreak||0)+1:1)+'-day streak'}
-function cost(d){return Math.ceil(d.cost*Math.pow(d.costGrowth,state.levels[d.id]||0))}
-function purchaseCost(d,count){let total=0,level=state.levels[d.id]||0;for(let i=0;i<count;i++)total+=Math.ceil(d.cost*Math.pow(d.costGrowth,level+i));return total}
-function buyQuantity(d){if(buyMode!=='max')return Number(buyMode);let n=0,total=0,level=state.levels[d.id]||0;while(n<10000){const next=Math.ceil(d.cost*Math.pow(d.costGrowth,level+n));if(total+next>state.cash)break;total+=next;n++}return n}
+function cost(d){return Math.ceil(d.cost*Math.pow(1.15,state.levels[d.id]||0))}
+function purchaseCost(d,count){let total=0,level=state.levels[d.id]||0;for(let i=0;i<count;i++)total+=Math.ceil(d.cost*Math.pow(1.15,level+i));return total}
+function buyQuantity(d){if(buyMode!=='max')return Number(buyMode);let n=0,total=0,level=state.levels[d.id]||0;while(n<10000){const next=Math.ceil(d.cost*Math.pow(1.15,level+n));if(total+next>state.cash)break;total+=next;n++}return n}
 function buyLabel(d,count){const verb=state.levels[d.id]?'Upgrade':'Buy';if(buyMode==='max')return count>0?verb+' ×'+count:verb+' Max';return count>1?verb+' ×'+count:verb}
 function say(msg){$('feed').textContent=msg;if(feedTimer)clearTimeout(feedTimer);feedTimer=setTimeout(()=>{$('feed').textContent=''},6500)}
 function save(){if(window._importingSave)return;state.lastSeen=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){say('Could not save on this device. Check your browser storage settings.')}}
@@ -131,9 +135,9 @@ function render(){
  $('cash').textContent=money(state.cash);$('income').textContent='+'+precise(income())+' / second';$('lifetime').textContent=money(state.lifetime);
  $('businessCount').textContent=defs.reduce((n,d)=>n+(state.levels[d.id]||0),0);const r=rank();$('empireLevel').textContent=String(ranks.indexOf(r)+1);$('rankChip').textContent=r.icon+' '+r.name;$('multiplierChip').textContent='⚡ Income ×'+(globalMultiplier()*prestigeMultiplier()).toLocaleString('en-US',{maximumFractionDigits:2});$('tapHint').textContent='Tap for '+money(Math.max(1,Math.floor(tapMultiplier())))+' · upgrades improve your tap';
  const next=defs.find(d=>state.lifetime<d.unlock&&d.id!=='lemonade');$('nextUnlock').textContent=next?'Next unlock: '+money(next.unlock):'All businesses unlocked';updateEraUI();
- $('businesses').innerHTML=defs.map(d=>{const level=state.levels[d.id]||0,unlocked=state.lifetime>=d.unlock||level>0,count=buyQuantity(d),price=purchaseCost(d,count||1),affordable=count>0&&(buyMode==='max'||state.cash>=price),rate=businessIncome(d);return '<article class="biz '+(!unlocked?'locked':'')+'"><div class="biz-icon" aria-hidden="true">'+d.icon+'</div><div><h3>'+d.name+'</h3><p class="desc">'+d.desc+'</p><div class="level">'+(level?'Level '+level+' · '+precise(rate)+'/s':('<span class="unlock">Unlock at '+money(d.unlock)+' lifetime earned</span>'))+'</div></div><button class="buy" data-buy="'+d.id+'" '+(!unlocked||!affordable?'disabled':'')+'><span class="buy-label">'+buyLabel(d,count)+'</span><span class="price">'+money(price)+'</span></button></article>'}).join('');
+ $('businesses').innerHTML=defs.map(d=>{const level=state.levels[d.id]||0,unlocked=state.lifetime>=d.unlock||level>0,count=buyQuantity(d),price=purchaseCost(d,count||1),affordable=count>0&&(buyMode==='max'||state.cash>=price),rate=businessIncome(d),nextTier=tierThresholds.find(t=>t>level);return '<article class="biz '+(!unlocked?'locked':'')+'"><div class="biz-icon" aria-hidden="true">'+d.icon+'</div><div><h3>'+d.name+'</h3><p class="desc">'+d.desc+'</p><div class="level">'+(level?'Level '+level+' · '+precise(rate)+'/s'+(nextTier?' · ×2 upgrade at '+nextTier:' · All production tiers reached'):('<span class="unlock">Unlock at '+money(d.unlock)+' lifetime earned</span>'))+'</div></div><button class="buy" data-buy="'+d.id+'" '+(!unlocked||!affordable?'disabled':'')+'><span class="buy-label">'+buyLabel(d,count)+'</span><span class="price">'+money(price)+'</span></button></article>'}).join('');
 document.querySelectorAll('[data-buy-mode]').forEach(btn=>{const active=btn.dataset.buyMode===buyMode;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
- $('upgrades').innerHTML=upgrades.map(u=>{const has=owned(u.id);return '<button class="upgrade '+(has?'owned':'')+'" data-upgrade="'+u.id+'" '+(has||state.cash<u.cost?'disabled':'')+'><span class="u-icon" aria-hidden="true">'+u.icon+'</span><b>'+u.name+'</b><small>'+u.desc+'</small><span class="u-price">'+(has?'✓ Purchased':money(u.cost))+'</span></button>'}).join('');
+ $('upgrades').innerHTML=upgrades.filter(u=>!u.business||(state.levels[u.business]||0)>=u.threshold||owned(u.id)).map(u=>{const has=owned(u.id),level=u.business?(state.levels[u.business]||0):0,locked=!!u.business&&level<u.threshold;return '<button class="upgrade '+(has?'owned':'')+' '+(locked?'locked-tier':'')+'" data-upgrade="'+u.id+'" '+(has||locked||state.cash<u.cost?'disabled':'')+'><span class="u-icon" aria-hidden="true">'+u.icon+'</span><b>'+u.name+'</b><small>'+u.desc+'</small><span class="u-price">'+(has?'✓ Purchased':locked?'Own '+u.threshold+' · '+money(u.cost):money(u.cost))+'</span></button>'}).join('');
  $('milestones').innerHTML=goals.map(g=>{const done=state.lifetime>=g.value,claimed=state.claimed.includes(g.id),progress=Math.min(100,state.lifetime/g.value*100);return '<div class="milestone '+(claimed?'done':'')+'"><div class="check">'+(claimed?'✓':done?'!':'·')+'</div><div style="min-width:0;flex:1"><b>'+g.title+'</b><small>'+g.desc+'</small><div class="progress-track"><div class="progress-fill" data-goal-progress="'+g.id+'" style="width:'+progress+'%"></div></div></div><button class="buy" data-claim="'+g.id+'" '+(!done||claimed?'disabled':'')+'>'+ (claimed?'Claimed':done?'Claim':'Reward')+'<span class="price">'+money(g.reward)+'</span></button></div>'}).join('');
  document.querySelectorAll('[data-buy]').forEach(btn=>btn.addEventListener('click',()=>buy(btn.dataset.buy)));document.querySelectorAll('[data-upgrade]').forEach(btn=>btn.addEventListener('click',()=>buyUpgrade(btn.dataset.upgrade)));document.querySelectorAll('[data-claim]').forEach(btn=>btn.addEventListener('click',()=>claim(btn.dataset.claim)));updateSpecialButtons();updatePrestigeUI();
 }
@@ -143,7 +147,7 @@ function exportSave(){save();const blob=new Blob([JSON.stringify(state,null,2)],
 function importSave(event){const file=event.target.files&&event.target.files[0];event.target.value='';if(!file)return;if(file.size>100000){say('That save file is too large to import.');return}const reader=new FileReader();reader.onload=()=>{try{const imported=JSON.parse(String(reader.result||''));if(!imported||typeof imported.cash!=='number'||!imported.levels||typeof imported.levels!=='object')throw new Error('Invalid save');if(!confirm('Import this save and replace the progress on this device? Export your current save first if you want to keep it.'))return;localStorage.setItem(SAVE_KEY,JSON.stringify(imported));window._importingSave=true;location.reload()}catch(e){say('Could not import that save. Choose a valid Tiny Empire JSON backup.')}};reader.onerror=()=>say('Could not read that file. Please try again.');reader.readAsText(file)}
 function collect(){const gain=Math.max(1,Math.floor(tapMultiplier()*(1+Math.floor((state.levels.lemonade-1)*.25))));state.cash+=gain;state.lifetime+=gain;render();save();say('Nice! You collected '+money(gain)+'. Keep it growing!')}
 function buy(id){const d=defs.find(x=>x.id===id);if(!d)return;const count=buyQuantity(d),price=purchaseCost(d,count);if(count<1|| (buyMode!=='max'&&state.cash<price)||((state.levels[id]||0)===0&&state.lifetime<d.unlock))return;state.cash-=price;state.levels[id]=(state.levels[id]||0)+count;render();save();say(d.name+' upgraded '+count+' level'+(count===1?'':'s')+' for '+money(price)+'. Your empire is growing!')}
-function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||owned(id)||state.cash<u.cost)return;state.cash-=u.cost;state.owned.push(id);render();save();say(u.name+' purchased! '+u.desc)}
+function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||owned(id)||state.cash<u.cost||(u.business&&(state.levels[u.business]||0)<u.threshold))return;state.cash-=u.cost;state.owned.push(id);render();save();say(u.name+' purchased! '+u.desc)}
 function claim(id){const g=goals.find(x=>x.id===id);if(!g||state.lifetime<g.value||state.claimed.includes(id))return;state.claimed.push(id);state.cash+=g.reward;state.lifetime+=g.reward;render();save();say('Goal complete: '+g.title+'! Bonus '+money(g.reward)+' added to your cash.')}
 function startBoost(){const now=Date.now();if(now<state.boostUntil||now<state.boostCooldownUntil)return;state.boostUntil=now+30000;state.boostCooldownUntil=now+180000;render();save();say('Rush Hour is on! Your business income is doubled for 30 seconds.');}
 function claimDaily(){const today=localDateKey();if(state.dailyClaimDate===today)return;const reward=dailyReward();state.dailyStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;state.dailyClaimDate=today;state.cash+=reward;state.lifetime+=reward;render();save();say('Daily delivery collected: '+money(reward)+'! Day '+state.dailyStreak+' streak. Return tomorrow to keep your streak and grow the bonus.') }
