@@ -52,7 +52,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 <div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash, own more businesses, and buy production-doubling tiers at 10, 25, 50, 100, 150 and 200 units.</p></div></div>
 <div class="milestones" id="milestones"></div><div class="section-head"><div><h2>🏪 Business milestones</h2><p>Build your portfolio to earn one-time cash bonuses each run.</p></div></div><div class="milestones" id="businessMilestones"></div></main>
 <main id="legacyScreen" class="game-screen" data-screen="legacy"><div class="section-head"><div><h2>👑 Empire prestige</h2><p>Restart your empire for a permanent income boost.</p></div></div>
-<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $350K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $350K</span></button></div></section>
+<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small id="prestigeDescription">Reach $250K lifetime earned in this run to prestige.</small><div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div></div><button class="buy" id="prestigeBtn" disabled>Prestige<span class="price" id="prestigeRewardLabel">Requires $250K</span></button></div></section>
 <div class="section-head"><div><h2>🧬 Prestige legacy</h2><p>Each prestige unlocks permanent account-wide milestones. Your legacy grows across resets.</p></div></div><section class="milestones" id="legacyPanel" aria-live="polite"></section>
 <div class="save-tools"><button type="button" class="save-tool" id="exportSaveBtn">⬇ Export save</button><button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button><input id="importSaveFile" type="file" accept=".json,application/json" hidden></div><div class="footer">Progress saves automatically on this device · Offline earnings start capped at 4 hours; prestige legacy extends this to 7 · No account required</div>
 </main>
@@ -66,7 +66,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;ma
 (()=>{
 'use strict';
 const SAVE_KEY='tiny-empire-save-v1';
-const PRESTIGE_THRESHOLD = 350000; // Slightly higher wall to match the grind-heavy balance pass.
+const PRESTIGE_THRESHOLD = 250000; // Prestige is a meaningful milestone, not an early reset.
 const COST_SCALE = 1.19; // Classic idle curve, but more grind-heavy
 
 const defs = [
@@ -135,10 +135,10 @@ upgrades.push(...defs.flatMap(d=>tierThresholds.map((threshold,i)=>({id:'tier_'+
 const goals=[
 {id:'g10',value:10,title:'First pocket money',desc:'Earn $10 in total.',reward:2},
 {id:'g25',value:25,title:'A growing little town',desc:'Earn $25 in total.',reward:5},
-{id:'g180',value:180,title:'Coffee break',desc:'Earn $180 in total.',reward:20},
-{id:'g500',value:500,title:'Local legend',desc:'Earn $500 in total.',reward:80},
-{id:'g2500',value:2500,title:'Tiny tycoon',desc:'Earn $2,500 in total.',reward:300},
-{id:'g10000',value:10000,title:'Business district',desc:'Earn $10,000 in total.',reward:1200},
+{id:'g180',value:180,title:'Coffee break',desc:'Earn $180 in total.',reward:15},
+{id:'g500',value:500,title:'Local legend',desc:'Earn $500 in total.',reward:60},
+{id:'g2500',value:2500,title:'Tiny tycoon',desc:'Earn $2,500 in total.',reward:250},
+{id:'g10000',value:10000,title:'Business district',desc:'Earn $10,000 in total.',reward:1000},
 {id:'g50000',value:50000,title:'Empire builder',desc:'Earn $50,000 in total.',reward:6000},
 {id:'g250000',value:250000,title:'Lights, camera, empire',desc:'Earn $250,000 in total.',reward:15000},
 {id:'g1000000',value:1000000,title:'Beyond the stratosphere',desc:'Earn $1,000,000 in total.',reward:50000},
@@ -201,7 +201,7 @@ function prestigeMultiplier(){return (1+Math.max(0,state.prestigePoints)*.1)*(1+
 function legacyTapMultiplier(){return legacyMilestones.reduce((mult,p)=>state.prestigeCount>=p.count?mult*(p.tapMultiplier||1):mult,1)}
 function legacyBoostSeconds(){return legacyMilestones.reduce((sum,p)=>sum+(state.prestigeCount>=p.count?p.boostSeconds||0:0),0)}
 function legacyOfflineHours(){return legacyMilestones.reduce((sum,p)=>sum+(state.prestigeCount>=p.count?p.offlineHours||0:0),0)}
-function prestigeReward(){return Math.floor(Math.sqrt(Math.max(0,state.lifetime)/PRESTIGE_THRESHOLD)*2)}
+function prestigeReward(){return Math.floor(Math.sqrt(Math.max(0,state.lifetime)/PRESTIGE_THRESHOLD)*1.5)}
 function tapMultiplier(){return upgrades.filter(u=>u.effect==='tap'&&owned(u.id)).reduce((v,u)=>v*u.mult,1)*legacyTapMultiplier()}
 function businessMilestoneMultiplier(){return (state.businessMilestonesClaimed||[]).reduce((mult,id)=>{const m=businessMilestoneDefs.find(x=>x.id===id);return mult*(1+(m?m.bonus||0:0))},1)}
 function businessIncome(d){const level=state.levels[d.id]||0;if(!level)return 0;let value=d.base*level*Math.pow(2,upgrades.filter(u=>u.effect==='business'&&u.business===d.id&&owned(u.id)).length);if(d.id==='lemonade'&&owned('recipes'))value*=2;return value*globalMultiplier()*prestigeMultiplier()*businessMilestoneMultiplier()}
@@ -255,7 +255,7 @@ function claim(id){const g=goals.find(x=>x.id===id);if(!g||state.lifetime<g.valu
 const businessMilestoneDefs=[{id:'levels10',levels:10,title:'Neighborhood favorite',desc:'Own 10 business levels · +5% business income.',reward:150,bonus:0.05,icon:'🏘️'},{id:'levels25',levels:25,title:'Local business network',desc:'Own 25 business levels · +8% business income.',reward:750,bonus:0.08,icon:'🏪'},{id:'levels50',levels:50,title:'Commercial district',desc:'Own 50 business levels · +12% business income.',reward:3000,bonus:0.12,icon:'🏙️'},{id:'levels100',levels:100,title:'Citywide powerhouse',desc:'Own 100 business levels · +16% business income.',reward:12000,bonus:0.16,icon:'🌆'},{id:'levels250',levels:250,title:'National franchise',desc:'Own 250 business levels · +22% business income.',reward:75000,bonus:0.22,icon:'🌐'},{id:'levels500',levels:500,title:'Economic superpower',desc:'Own 500 business levels · +30% business income.',reward:300000,bonus:0.30,icon:'👑'}];
 function totalBusinessLevels(){return defs.reduce((n,d)=>n+(state.levels[d.id]||0),0)}
 function claimBusinessMilestone(id){const m=businessMilestoneDefs.find(x=>x.id===id);if(!m||totalBusinessLevels()<m.levels||(state.businessMilestonesClaimed||[]).includes(id))return;state.businessMilestonesClaimed.push(id);state.cash+=m.reward;render();save();say('Business milestone complete: '+m.title+'! '+money(m.reward)+' bonus cash and a permanent '+Math.round(m.bonus*100)+'% income boost for this run.')}
-function startBoost(){const now=Date.now();if(now<state.boostUntil||now<state.boostCooldownUntil)return;ensureDailyMissions();state.boostUntil=now+(30000+legacyBoostSeconds()*1000);state.boostCooldownUntil=now+180000;state.missionProgress.rush=(state.missionProgress.rush||0)+1;render();save();say('Rush Hour is on! Your business income is doubled for 30 seconds.')}
+function startBoost(){const now=Date.now();if(now<state.boostUntil||now<state.boostCooldownUntil)return;ensureDailyMissions();state.boostUntil=now+(30000+legacyBoostSeconds()*1000);state.boostCooldownUntil=now+300000;state.missionProgress.rush=(state.missionProgress.rush||0)+1;render();save();say('Rush Hour is on! Your business income is doubled for 30 seconds.')}
 function claimDaily(){const today=localDateKey();if(state.dailyClaimDate===today)return;const reward=dailyReward();state.dailyStreak=state.dailyClaimDate===yesterdayDateKey()?Math.max(0,state.dailyStreak||0)+1:1;state.dailyClaimDate=today;state.cash+=reward;state.lifetime+=reward;render();save();say('Daily delivery collected: '+money(reward)+'! Day '+state.dailyStreak+' streak. Return tomorrow to keep your streak and grow the bonus.') }
 function updateLiveUI(){
  $('cash').textContent=money(state.cash);$('income').textContent='+'+precise(income())+' / second';$('lifetime').textContent=money(state.lifetime);
