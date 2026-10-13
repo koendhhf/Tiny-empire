@@ -63,6 +63,29 @@ test('malformed local storage is ignored without crashing', () => {
   assert.equal(state.lastSeen, 1234);
 });
 
+test('partial saves without mission targets receive safe mission defaults', () => {
+  const now = 1234;
+  const partialSave = {
+    cash: 30,
+    lifetime: 50,
+    levels: { lemonade: 1 },
+  };
+  const backup = JSON.stringify(partialSave);
+
+  assert.doesNotThrow(() => parseImportedSave(backup, now));
+  const imported = parseImportedSave(backup, now);
+  assert.ok([10, 15, 20].includes(imported.missionTargets.taps));
+  assert.ok([3, 5, 7].includes(imported.missionTargets.levels));
+
+  const loaded = loadState(
+    () => createStorage(backup),
+    { businesses, upgrades, goals },
+    now,
+  );
+  assert.equal(loaded.cash, 30);
+  assert.equal(loaded.lifetime, 50);
+});
+
 test('malformed, unknown, or out-of-range imported saves are rejected', () => {
   const valid = createInitialState(1234);
   const invalidCases = [
