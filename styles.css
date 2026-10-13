@@ -731,6 +731,10 @@ button:disabled {
   font-weight: 650;
 }
 
+.biz .unlock:empty {
+  display: none;
+}
+
 .biz .level-progress {
   display: flex;
   align-items: center;
@@ -738,6 +742,10 @@ button:disabled {
   margin-top: 7px;
   color: var(--muted);
   font: 700 11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.biz .level-progress[hidden] {
+  display: none;
 }
 
 .biz .level-progress .progress-track {
@@ -1107,6 +1115,11 @@ button:disabled {
   gap: var(--space-3);
   min-width: 0;
   padding: 12px 0;
+}
+
+.milestone-copy {
+  min-width: 0;
+  flex: 1;
 }
 
 .milestone + .milestone {

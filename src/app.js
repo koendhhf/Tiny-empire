@@ -142,7 +142,7 @@ function restoreRenderFocus(target) {
 }
 
 function updateLiveUI() {
-  renderLiveUI(state, { buyMode });
+  renderLiveUI(state, { buyMode, showAllBusinesses });
 }
 
 function updateTapComboProgress() {

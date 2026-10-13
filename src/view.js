@@ -32,12 +32,6 @@ import {
 } from './progression.js';
 
 const $ = (id) => document.getElementById(id);
-const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
-}
-
 function trimFixed(value, digits = 2) {
   return value.toFixed(digits).replace(/\.?0+$/, '');
 }
@@ -140,29 +134,56 @@ export function showMessage(message) {
   if (feed) feed.textContent = message;
 }
 
+function createElement(tagName, className = '', text = '') {
+  const element = document.createElement(tagName);
+  if (className) element.className = className;
+  if (text) element.textContent = text;
+  return element;
+}
+
+function syncChildren(container, children) {
+  children.forEach((child, index) => {
+    const current = container.children[index];
+    if (current !== child) container.insertBefore(child, current || null);
+  });
+  while (container.children.length > children.length) {
+    container.lastElementChild.remove();
+  }
+}
+
+function createLegacyMilestoneRow(milestone) {
+  const row = createElement('div', 'milestone');
+  row.dataset.legacyMilestone = String(milestone.count);
+  const check = createElement('div', 'check');
+  const copy = createElement('div', 'milestone-copy');
+  const title = createElement('b');
+  const description = createElement('small');
+  copy.append(title, description);
+  const chip = createElement('span', 'chip');
+  row.append(check, copy, chip);
+  return row;
+}
+
 function renderLegacyMilestones(state) {
+  const container = $('legacyPanel');
+  const currentRows = new Map(
+    Array.from(container.children).map((row) => [row.dataset.legacyMilestone, row]),
+  );
+  const rows = legacyMilestones.map((milestone) => {
+    const id = String(milestone.count);
+    const row = currentRows.get(id) || createLegacyMilestoneRow(milestone);
+    const active = state.prestigeCount >= milestone.count;
+    row.classList.toggle('done', active);
+    row.querySelector('.check').textContent = active ? '✓' : String(milestone.count);
+    row.querySelector('b').textContent = milestone.icon + ' ' + milestone.name;
+    row.querySelector('small').textContent = milestone.desc;
+    row.querySelector('.chip').textContent = active ? 'Unlocked' : 'Prestige ' + milestone.count;
+    return row;
+  });
+  syncChildren(container, rows);
+
   const unlocked = legacyMilestones.filter((milestone) => state.prestigeCount >= milestone.count).length;
-  $('legacyPanel').innerHTML = legacyMilestones
-    .map((milestone) => {
-      const active = state.prestigeCount >= milestone.count;
-      return (
-        '<div class="milestone ' +
-        (active ? 'done' : '') +
-        '"><div class="check">' +
-        (active ? '✓' : milestone.count) +
-        '</div><div style="min-width:0;flex:1"><b>' +
-        escapeHtml(milestone.icon) +
-        ' ' +
-        escapeHtml(milestone.name) +
-        '</b><small>' +
-        escapeHtml(milestone.desc) +
-        '</small></div><span class="chip">' +
-        (active ? 'Unlocked' : 'Prestige ' + milestone.count) +
-        '</span></div>'
-      );
-    })
-    .join('');
-  $('legacyPanel').setAttribute(
+  container.setAttribute(
     'aria-label',
     unlocked + ' of ' + legacyMilestones.length + ' legacy milestones unlocked',
   );
@@ -339,6 +360,246 @@ function renderDailyMissions(state) {
   }
 }
 
+function createBusinessRow(business) {
+  const row = createElement('article', 'biz');
+  row.dataset.businessRow = business.id;
+  row.tabIndex = -1;
+
+  const icon = createElement('div', 'biz-icon');
+  icon.setAttribute('aria-hidden', 'true');
+  const copy = createElement('div', 'biz-copy');
+  const title = createElement('h3');
+  const description = createElement('p', 'desc');
+  const level = createElement('div', 'level');
+  level.append(createElement('span', 'level-value'), createElement('span', 'unlock'));
+
+  const progress = createElement('div', 'level-progress');
+  const progressLabel = createElement('span', 'level-progress-label');
+  const track = createElement('div', 'progress-track');
+  track.append(createElement('div', 'progress-fill'));
+  progress.append(progressLabel, track);
+  copy.append(title, description, level, progress);
+
+  const button = createElement('button', 'buy');
+  button.type = 'button';
+  button.append(createElement('span', 'buy-label'), createElement('span', 'price'));
+  row.append(icon, copy, button);
+  return row;
+}
+
+function updateBusinessRow(row, business, state, buyMode) {
+  const level = state.levels[business.id] || 0;
+  const unlocked = state.lifetime >= business.unlock || level > 0;
+  const count = calculateBuyQuantity(state, business, buyMode);
+  const price = calculatePurchaseCost(state, business, count || 1);
+  const affordable = count > 0 && (buyMode === 'max' || state.cash >= price);
+  const rate = calculateBusinessIncome(state, business);
+  const nextTier = tierThresholds.find((threshold) => threshold > level);
+  const canAffordNext = state.cash >= calculatePurchaseCost(state, business, 1) && unlocked;
+
+  row.classList.toggle('locked', !unlocked);
+  row.classList.toggle('affordable', canAffordNext);
+  row.querySelector('.biz-icon').textContent = business.icon;
+  row.querySelector('h3').textContent = business.name;
+  row.querySelector('.desc').textContent = business.desc;
+  row.querySelector('.level-value').textContent = level
+    ? 'Level ' + level + ' · ' + formatPrecise(rate) + '/s' +
+      (nextTier ? ' · ×2 at ' + nextTier : ' · All tiers reached')
+    : '';
+  row.querySelector('.unlock').textContent = level
+    ? ''
+    : 'Unlock at ' + formatMoney(business.unlock) + ' lifetime earned';
+
+  const progress = Math.max(0, Math.min(100, (state.lifetime / Math.max(1, business.unlock)) * 100));
+  const progressRow = row.querySelector('.level-progress');
+  progressRow.hidden = unlocked;
+  progressRow.querySelector('.level-progress-label').textContent = Math.floor(progress) + '%';
+  progressRow.querySelector('.progress-fill').style.width = progress + '%';
+
+  const button = row.querySelector('[data-buy]') || row.querySelector('button');
+  button.dataset.buy = business.id;
+  button.disabled = !unlocked || !affordable;
+  button.querySelector('.buy-label').textContent = getBuyLabel(state, business, count, buyMode);
+  button.querySelector('.price').textContent = formatMoney(price);
+}
+
+function renderBusinesses(state, buyMode, showAllBusinesses) {
+  const container = $('businesses');
+  const ownedBusinesses = businesses.filter((business) => (state.levels[business.id] || 0) > 0);
+  const nextAvailable = businesses
+    .filter((business) => state.lifetime >= business.unlock && (state.levels[business.id] || 0) === 0)
+    .slice(0, 2);
+  const nextLocked = businesses
+    .filter((business) => state.lifetime < business.unlock && (state.levels[business.id] || 0) === 0)
+    .slice(0, 2);
+  const visible = showAllBusinesses
+    ? businesses
+    : [...new Set([...ownedBusinesses, ...nextAvailable, ...nextLocked])].sort(
+        (first, second) => businesses.indexOf(first) - businesses.indexOf(second),
+      );
+  const existing = new Map(
+    Array.from(container.children)
+      .filter((row) => row.dataset.businessRow)
+      .map((row) => [row.dataset.businessRow, row]),
+  );
+  const rows = visible.map((business) => {
+    const row = existing.get(business.id) || createBusinessRow(business);
+    updateBusinessRow(row, business, state, buyMode);
+    return row;
+  });
+
+  let moreButton = container.querySelector('.biz-more');
+  const shouldShowMore = businesses.length > visible.length;
+  if (showAllBusinesses || shouldShowMore) {
+    if (!moreButton) {
+      moreButton = createElement('button', 'biz-more');
+      moreButton.type = 'button';
+    }
+    moreButton.id = showAllBusinesses ? 'showFewerBusinesses' : 'showAllBusinesses';
+    moreButton.setAttribute('aria-controls', 'businesses');
+    moreButton.setAttribute('aria-expanded', String(showAllBusinesses));
+    moreButton.textContent = showAllBusinesses
+      ? 'Show fewer businesses'
+      : 'Show all ' + businesses.length + ' businesses · ' + visible.length + ' shown';
+    rows.push(moreButton);
+  }
+  syncChildren(container, rows);
+}
+
+function createUpgradeButton(upgrade) {
+  const button = createElement('button', 'upgrade');
+  button.type = 'button';
+  button.dataset.upgrade = upgrade.id;
+  const icon = createElement('span', 'u-icon');
+  icon.setAttribute('aria-hidden', 'true');
+  button.append(icon, createElement('b'), createElement('small'), createElement('span', 'u-price'));
+  return button;
+}
+
+function renderUpgrades(state) {
+  const container = $('upgrades');
+  const visible = upgrades.filter(
+    (upgrade) =>
+      !upgrade.business ||
+      upgrade.threshold == null ||
+      (state.levels[upgrade.business] || 0) >= upgrade.threshold ||
+      owns(state, upgrade.id),
+  );
+  const existing = new Map(
+    Array.from(container.children).map((button) => [button.dataset.upgrade, button]),
+  );
+  const rows = visible.map((upgrade) => {
+    const button = existing.get(upgrade.id) || createUpgradeButton(upgrade);
+    const ownedUpgrade = owns(state, upgrade.id);
+    const level = upgrade.business ? state.levels[upgrade.business] || 0 : 0;
+    const locked = Boolean(upgrade.business && level < upgrade.threshold);
+    button.classList.toggle('owned', ownedUpgrade);
+    button.classList.toggle('locked-tier', locked);
+    button.querySelector('.u-icon').textContent = upgrade.icon;
+    button.querySelector('b').textContent = upgrade.name;
+    button.querySelector('small').textContent = upgrade.desc;
+    button.querySelector('.u-price').textContent = ownedUpgrade
+      ? '✓ Purchased'
+      : locked
+        ? 'Own ' + upgrade.threshold + ' · ' + formatMoney(upgrade.cost)
+        : formatMoney(upgrade.cost);
+    button.disabled = ownedUpgrade || locked || state.cash < upgrade.cost;
+    return button;
+  });
+  syncChildren(container, rows);
+}
+
+function createGoalRow(goal) {
+  const row = createElement('div', 'milestone');
+  row.dataset.goalRow = goal.id;
+  row.tabIndex = -1;
+  const check = createElement('div', 'check');
+  const copy = createElement('div', 'milestone-copy');
+  const title = createElement('b');
+  const description = createElement('small');
+  const track = createElement('div', 'progress-track');
+  track.append(createElement('div', 'progress-fill'));
+  copy.append(title, description, track);
+  const button = createElement('button', 'buy');
+  button.type = 'button';
+  button.dataset.claim = goal.id;
+  button.append(createElement('span', 'claim-label'), createElement('span', 'price'));
+  row.append(check, copy, button);
+  return row;
+}
+
+function renderGoals(state) {
+  const container = $('milestones');
+  const existing = new Map(
+    Array.from(container.children).map((row) => [row.dataset.goalRow, row]),
+  );
+  const rows = goals.map((goal) => {
+    const row = existing.get(goal.id) || createGoalRow(goal);
+    const done = state.lifetime >= goal.value;
+    const claimed = state.claimed.includes(goal.id);
+    const progress = Math.min(100, (state.lifetime / goal.value) * 100);
+    row.classList.toggle('done', claimed);
+    row.querySelector('.check').textContent = claimed ? '✓' : done ? '!' : '·';
+    row.querySelector('b').textContent = goal.title;
+    row.querySelector('small').textContent = goal.desc;
+    row.querySelector('.progress-fill').style.width = progress + '%';
+    const button = row.querySelector('[data-claim]');
+    button.disabled = !done || claimed;
+    button.querySelector('.claim-label').textContent = claimed ? 'Claimed' : done ? 'Claim' : 'Reward';
+    button.querySelector('.price').textContent = formatMoney(goal.reward);
+    return row;
+  });
+  syncChildren(container, rows);
+}
+
+function createBusinessMilestoneRow(milestone) {
+  const row = createElement('div', 'milestone');
+  row.dataset.businessMilestoneRow = milestone.id;
+  row.tabIndex = -1;
+  const check = createElement('div', 'check');
+  const copy = createElement('div', 'milestone-copy');
+  const title = createElement('b');
+  const description = createElement('small');
+  const track = createElement('div', 'progress-track');
+  track.append(createElement('div', 'progress-fill'));
+  const note = createElement('small', 'business-milestone-note');
+  copy.append(title, description, track, note);
+  const button = createElement('button', 'buy');
+  button.type = 'button';
+  button.dataset.claimBusinessMilestone = milestone.id;
+  button.append(createElement('span', 'claim-label'), createElement('span', 'price'));
+  row.append(check, copy, button);
+  return row;
+}
+
+function renderBusinessMilestones(state) {
+  const container = $('businessMilestones');
+  const totalLevels = getTotalBusinessLevels(state);
+  const claimedMilestones = state.businessMilestonesClaimed || [];
+  const existing = new Map(
+    Array.from(container.children).map((row) => [row.dataset.businessMilestoneRow, row]),
+  );
+  const rows = businessMilestones.map((milestone) => {
+    const row = existing.get(milestone.id) || createBusinessMilestoneRow(milestone);
+    const done = totalLevels >= milestone.levels;
+    const claimed = claimedMilestones.includes(milestone.id);
+    const progress = Math.min(100, (totalLevels / milestone.levels) * 100);
+    row.classList.toggle('done', claimed);
+    row.querySelector('.check').textContent = claimed ? '✓' : done ? '!' : milestone.icon;
+    row.querySelector('b').textContent = milestone.title;
+    row.querySelector('small').textContent = milestone.desc;
+    row.querySelector('.progress-fill').style.width = progress + '%';
+    row.querySelector('.business-milestone-note').textContent =
+      Math.min(totalLevels, milestone.levels) + ' / ' + milestone.levels + ' total levels';
+    const button = row.querySelector('[data-claim-business-milestone]');
+    button.disabled = !done || claimed;
+    button.querySelector('.claim-label').textContent = claimed ? 'Claimed' : done ? 'Claim' : 'Reward';
+    button.querySelector('.price').textContent = formatMoney(milestone.reward);
+    return row;
+  });
+  syncChildren(container, rows);
+}
+
 export function renderGame(state, options = {}) {
   const buyMode = options.buyMode || '1';
   const showAllBusinesses = Boolean(options.showAllBusinesses);
@@ -365,81 +626,7 @@ export function renderGame(state, options = {}) {
   updateEra(state);
   updateCompactUnlock(state, next);
 
-  const ownedBusinesses = businesses.filter((business) => (state.levels[business.id] || 0) > 0);
-  const nextAvailable = businesses
-    .filter((business) => state.lifetime >= business.unlock && (state.levels[business.id] || 0) === 0)
-    .slice(0, 2);
-  const nextLocked = businesses
-    .filter((business) => state.lifetime < business.unlock && (state.levels[business.id] || 0) === 0)
-    .slice(0, 2);
-  const visibleBusinesses = showAllBusinesses
-    ? businesses
-    : [...new Set([...ownedBusinesses, ...nextAvailable, ...nextLocked])].sort(
-        (first, second) => businesses.indexOf(first) - businesses.indexOf(second),
-      );
-  $('businesses').innerHTML =
-    visibleBusinesses
-      .map((business) => {
-        const level = state.levels[business.id] || 0;
-        const unlocked = state.lifetime >= business.unlock || level > 0;
-        const count = calculateBuyQuantity(state, business, buyMode);
-        const price = calculatePurchaseCost(state, business, count || 1);
-        const affordable = count > 0 && (buyMode === 'max' || state.cash >= price);
-        const rate = calculateBusinessIncome(state, business);
-        const nextTier = tierThresholds.find((threshold) => threshold > level);
-        const canAffordNext = state.cash >= calculatePurchaseCost(state, business, 1) && unlocked;
-        const levelText = level
-          ? escapeHtml('Level ' +
-            level +
-            ' · ' +
-            formatPrecise(rate) +
-            '/s' +
-            (nextTier ? ' · ×2 at ' + nextTier : ' · All tiers reached'))
-          : '<span class="unlock">Unlock at ' + escapeHtml(formatMoney(business.unlock)) + ' lifetime earned</span>';
-        const progress = Math.min(100, (state.lifetime / Math.max(1, business.unlock)) * 100);
-        return (
-          '<article class="biz ' +
-          (!unlocked ? 'locked ' : '') +
-          (canAffordNext ? 'affordable' : '') +
-          '" data-business-row="' +
-          escapeHtml(business.id) +
-          '" tabindex="-1"><div class="biz-icon" aria-hidden="true">' +
-          escapeHtml(business.icon) +
-          '</div><div><h3>' +
-          escapeHtml(business.name) +
-          '</h3><p class="desc">' +
-          escapeHtml(business.desc) +
-          '</p><div class="level">' +
-          levelText +
-          '</div>' +
-          (!unlocked
-            ? '<div class="level-progress"><span>' +
-              Math.floor(progress) +
-              '%</span><div class="progress-track"><div class="progress-fill" style="width:' +
-              progress +
-              '%"></div></div></div>'
-            : '') +
-          '</div><button class="buy" data-buy="' +
-          escapeHtml(business.id) +
-          '" ' +
-          (!unlocked || !affordable ? 'disabled' : '') +
-          '><span class="buy-label">' +
-          escapeHtml(getBuyLabel(state, business, count, buyMode)) +
-          '</span><span class="price">' +
-          escapeHtml(formatMoney(price)) +
-          '</span></button></article>'
-        );
-      })
-      .join('') +
-    (!showAllBusinesses && businesses.length > visibleBusinesses.length
-      ? '<button type="button" class="biz-more" id="showAllBusinesses">Show all ' +
-        businesses.length +
-        ' businesses · ' +
-        visibleBusinesses.length +
-        ' shown</button>'
-      : showAllBusinesses
-        ? '<button type="button" class="biz-more" id="showFewerBusinesses">Show fewer businesses</button>'
-        : '');
+  renderBusinesses(state, buyMode, showAllBusinesses);
 
   document.querySelectorAll('[data-buy-mode]').forEach((button) => {
     const active = button.dataset.buyMode === buyMode;
@@ -447,109 +634,9 @@ export function renderGame(state, options = {}) {
     button.setAttribute('aria-pressed', String(active));
   });
 
-  $('upgrades').innerHTML = upgrades
-    .filter(
-      (upgrade) =>
-        !upgrade.business ||
-        upgrade.threshold == null ||
-        (state.levels[upgrade.business] || 0) >= upgrade.threshold ||
-        owns(state, upgrade.id),
-    )
-    .map((upgrade) => {
-      const has = owns(state, upgrade.id);
-      const level = upgrade.business ? state.levels[upgrade.business] || 0 : 0;
-      const locked = Boolean(upgrade.business && level < upgrade.threshold);
-      return (
-        '<button class="upgrade ' +
-        (has ? 'owned' : '') +
-        ' ' +
-        (locked ? 'locked-tier' : '') +
-        '" data-upgrade="' +
-        escapeHtml(upgrade.id) +
-        '" ' +
-        (has || locked || state.cash < upgrade.cost ? 'disabled' : '') +
-        '><span class="u-icon" aria-hidden="true">' +
-        escapeHtml(upgrade.icon) +
-        '</span><b>' +
-        escapeHtml(upgrade.name) +
-        '</b><small>' +
-        escapeHtml(upgrade.desc) +
-        '</small><span class="u-price">' +
-        escapeHtml(has ? '✓ Purchased' : locked ? 'Own ' + upgrade.threshold + ' · ' + formatMoney(upgrade.cost) : formatMoney(upgrade.cost)) +
-        '</span></button>'
-      );
-    })
-    .join('');
-
-  $('milestones').innerHTML = goals
-    .map((goal) => {
-      const done = state.lifetime >= goal.value;
-      const claimed = state.claimed.includes(goal.id);
-      const progress = Math.min(100, (state.lifetime / goal.value) * 100);
-      return (
-        '<div class="milestone ' +
-        (claimed ? 'done' : '') +
-        '" data-goal-row="' +
-        escapeHtml(goal.id) +
-        '" tabindex="-1"><div class="check">' +
-        (claimed ? '✓' : done ? '!' : '·') +
-        '</div><div style="min-width:0;flex:1"><b>' +
-        escapeHtml(goal.title) +
-        '</b><small>' +
-        escapeHtml(goal.desc) +
-        '</small><div class="progress-track"><div class="progress-fill" data-goal-progress="' +
-        escapeHtml(goal.id) +
-        '" style="width:' +
-        progress +
-        '%"></div></div></div><button class="buy" data-claim="' +
-        escapeHtml(goal.id) +
-        '" ' +
-        (!done || claimed ? 'disabled' : '') +
-        '>' +
-        (claimed ? 'Claimed' : done ? 'Claim' : 'Reward') +
-        '<span class="price">' +
-        escapeHtml(formatMoney(goal.reward)) +
-        '</span></button></div>'
-      );
-    })
-    .join('');
-
-  const totalLevels = getTotalBusinessLevels(state);
-  $('businessMilestones').innerHTML = businessMilestones
-    .map((milestone) => {
-      const done = totalLevels >= milestone.levels;
-      const claimed = (state.businessMilestonesClaimed || []).includes(milestone.id);
-      const progress = Math.min(100, (totalLevels / milestone.levels) * 100);
-      return (
-        '<div class="milestone ' +
-        (claimed ? 'done' : '') +
-        '" data-business-milestone-row="' +
-        escapeHtml(milestone.id) +
-        '" tabindex="-1"><div class="check">' +
-        (claimed ? '✓' : done ? '!' : escapeHtml(milestone.icon)) +
-        '</div><div style="min-width:0;flex:1"><b>' +
-        escapeHtml(milestone.title) +
-        '</b><small>' +
-        escapeHtml(milestone.desc) +
-        '</small><div class="progress-track"><div class="progress-fill" style="width:' +
-        progress +
-        '%"></div></div><small class="business-milestone-note">' +
-        Math.min(totalLevels, milestone.levels) +
-        ' / ' +
-        milestone.levels +
-        ' total levels</small></div><button class="buy" data-claim-business-milestone="' +
-        escapeHtml(milestone.id) +
-        '" ' +
-        (!done || claimed ? 'disabled' : '') +
-        '>' +
-        (claimed ? 'Claimed' : done ? 'Claim' : 'Reward') +
-        '<span class="price">' +
-        escapeHtml(formatMoney(milestone.reward)) +
-        '</span></button></div>'
-      );
-    })
-    .join('');
-
+  renderUpgrades(state);
+  renderGoals(state);
+  renderBusinessMilestones(state);
   renderTimedUI(state);
   renderLegacyMilestones(state);
   updateUpgradeIndicator(state);
@@ -557,6 +644,7 @@ export function renderGame(state, options = {}) {
 
 export function renderLiveUI(state, options = {}) {
   const buyMode = options.buyMode || '1';
+  const showAllBusinesses = Boolean(options.showAllBusinesses);
   renderDailyMissions(state);
   $('cash').textContent = formatMoney(state.cash);
   $('income').textContent = '+' + formatPrecise(calculateIncome(state)) + ' / second';
@@ -572,39 +660,11 @@ export function renderLiveUI(state, options = {}) {
   $('nextUnlock').textContent = next ? 'Next unlock: ' + formatMoney(next.unlock) : 'All businesses unlocked';
   updateEra(state);
   updateCompactUnlock(state, next);
-
-  document.querySelectorAll('[data-buy]').forEach((button) => {
-    const business = businesses.find((item) => item.id === button.dataset.buy);
-    if (business) {
-      const level = state.levels[business.id] || 0;
-      const count = calculateBuyQuantity(state, business, buyMode);
-      const total = calculatePurchaseCost(state, business, count || 1);
-      const affordable = count > 0 && (buyMode === 'max' || state.cash >= total);
-      const unlocked = state.lifetime >= business.unlock || level > 0;
-      const canAffordNext = state.cash >= calculatePurchaseCost(state, business, 1) && unlocked;
-      button.closest('.biz')?.classList.toggle('affordable', canAffordNext);
-      button.disabled = !affordable || (!level && state.lifetime < business.unlock);
-      const label = button.querySelector('.buy-label');
-      const price = button.querySelector('.price');
-      if (label) label.textContent = getBuyLabel(state, business, count, buyMode);
-      if (price) price.textContent = formatMoney(total);
-    }
-  });
-
-  document.querySelectorAll('[data-upgrade]').forEach((button) => {
-    const upgrade = upgrades.find((item) => item.id === button.dataset.upgrade);
-    if (upgrade) button.disabled = owns(state, upgrade.id) || state.cash < upgrade.cost;
-  });
+  renderBusinesses(state, buyMode, showAllBusinesses);
+  renderUpgrades(state);
+  renderGoals(state);
+  renderBusinessMilestones(state);
   updateUpgradeIndicator(state);
-
-  document.querySelectorAll('[data-claim]').forEach((button) => {
-    const goal = goals.find((item) => item.id === button.dataset.claim);
-    if (goal) button.disabled = state.lifetime < goal.value || state.claimed.includes(goal.id);
-  });
-  document.querySelectorAll('[data-goal-progress]').forEach((bar) => {
-    const goal = goals.find((item) => item.id === bar.dataset.goalProgress);
-    if (goal) bar.style.width = Math.min(100, (state.lifetime / goal.value) * 100) + '%';
-  });
 
   renderTimedUI(state);
 }

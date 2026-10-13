@@ -154,24 +154,30 @@ export function calculateTapGain(state, comboMultiplier = 1) {
 
 export function calculatePurchaseCost(state, business, quantity) {
   if (quantity <= 0) return 0;
+  if (!Number.isFinite(quantity)) return Number.MAX_VALUE;
   const level = state.levels[business.id] || 0;
   const growth = business.costGrowth || 1.15;
   const first = business.cost * Math.pow(growth, level);
   const total = Math.abs(growth - 1) < 1e-9
     ? first * quantity
     : (first * (Math.pow(growth, quantity) - 1)) / (growth - 1);
-  return Number.isFinite(total) ? Math.ceil(total) : Number.POSITIVE_INFINITY;
+  const roundedTotal = Math.ceil(total);
+  return Number.isFinite(roundedTotal) ? roundedTotal : Number.MAX_VALUE;
 }
 
 export function calculateBuyQuantity(state, business, mode) {
-  if (mode !== 'max') return Number(mode);
+  if (mode !== 'max') {
+    const requested = Number(mode);
+    return Number.isFinite(requested) && requested > 0 ? Math.floor(requested) : 0;
+  }
+  const cash = Number.isFinite(state.cash) ? Math.max(0, state.cash) : 0;
   let low = 0;
   let high = 1;
-  while (high < 100000 && calculatePurchaseCost(state, business, high) <= state.cash) high *= 2;
+  while (high < 100000 && calculatePurchaseCost(state, business, high) <= cash) high *= 2;
   high = Math.min(100000, high);
   while (low + 1 < high) {
     const middle = Math.floor((low + high) / 2);
-    if (calculatePurchaseCost(state, business, middle) <= state.cash) low = middle;
+    if (calculatePurchaseCost(state, business, middle) <= cash) low = middle;
     else high = middle;
   }
   return low;
@@ -186,7 +192,7 @@ export function calculateOfflineEarnings(state, now = Date.now()) {
 }
 
 export function collectPassiveIncome(state, elapsed, now = Date.now()) {
-  const amount = calculateIncome(state, now) * elapsed;
+  const amount = capCurrency(calculateIncome(state, now) * elapsed);
   if (amount > 0) {
     addEarnings(state, amount);
   }
