@@ -4,6 +4,7 @@ import {
   legacyMilestones,
   businessMilestones,
 } from './data.js';
+import { getPrestigeTreeEffects, getTotalPrestigePointsEarned } from './prestige.js';
 
 const MAX_GAME_CURRENCY = 1e300;
 
@@ -50,8 +51,10 @@ function calculateLegacyIncomeBonus(state) {
 }
 
 function calculatePrestigeMultiplier(state) {
+  const prestigeEffects = getPrestigeTreeEffects(state);
+  const pointsEarned = getTotalPrestigePointsEarned(state);
   return (
-    (1 + Math.max(0, state.prestigePoints) * 0.1) *
+    (1 + pointsEarned * 0.1 + prestigeEffects.incomePercent) *
     (1 + calculateLegacyIncomeBonus(state))
   );
 }
@@ -67,28 +70,31 @@ function calculateLegacyTapMultiplier(state) {
 }
 
 export function getLegacyBoostSeconds(state) {
-  return legacyMilestones.reduce(
+  const legacySeconds = legacyMilestones.reduce(
     (sum, milestone) =>
       sum + (state.prestigeCount >= milestone.count ? milestone.boostSeconds || 0 : 0),
     0,
   );
+  return legacySeconds + getPrestigeTreeEffects(state).boostSeconds;
 }
 
 function getLegacyOfflineHours(state) {
-  return legacyMilestones.reduce(
+  const legacyHours = legacyMilestones.reduce(
     (sum, milestone) =>
       sum + (state.prestigeCount >= milestone.count ? milestone.offlineHours || 0 : 0),
     0,
   );
+  return legacyHours + getPrestigeTreeEffects(state).offlineHours;
 }
 
 export function calculateTapMultiplier(state) {
-  return (
+  const upgradeAndLegacyMultiplier = (
     upgrades
       .filter((upgrade) => upgrade.effect === 'tap' && owns(state, upgrade.id))
       .reduce((multiplier, upgrade) => multiplier * upgrade.mult, 1) *
     calculateLegacyTapMultiplier(state)
   );
+  return upgradeAndLegacyMultiplier * getPrestigeTreeEffects(state).tapMultiplier;
 }
 
 export function calculateIncomeMultiplier(state) {
@@ -142,14 +148,10 @@ export function calculateIncome(state, now = Date.now()) {
 }
 
 export function calculateTapGain(state, comboMultiplier = 1) {
-  return capCurrency(Math.max(
-    1,
-    Math.floor(
-      calculateTapMultiplier(state) *
-        (1 + Math.floor((state.levels.lemonade - 1) * 0.25)) *
-        comboMultiplier,
-    ),
-  ));
+  const levelMultiplier = 1 + Math.floor((state.levels.lemonade - 1) * 0.25);
+  const regularGain = calculateTapMultiplier(state) * levelMultiplier * comboMultiplier;
+  const flatBonus = getPrestigeTreeEffects(state).tapFlat;
+  return capCurrency(Math.max(1, Math.floor(regularGain + flatBonus)));
 }
 
 export function calculatePurchaseCost(state, business, quantity) {
@@ -161,7 +163,8 @@ export function calculatePurchaseCost(state, business, quantity) {
   const total = Math.abs(growth - 1) < 1e-9
     ? first * quantity
     : (first * (Math.pow(growth, quantity) - 1)) / (growth - 1);
-  const roundedTotal = Math.ceil(total);
+  const discountedTotal = total * (1 - getPrestigeTreeEffects(state).buyDiscount);
+  const roundedTotal = Math.ceil(discountedTotal);
   return Number.isFinite(roundedTotal) ? roundedTotal : Number.MAX_VALUE;
 }
 

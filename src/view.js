@@ -6,6 +6,8 @@ import {
   ranks,
   legacyMilestones,
   businessMilestones,
+  prestigeTree,
+  prestigeTreeBranches,
   SHORT_SCALE_NAMES,
   PRESTIGE_THRESHOLD,
   TAP_STREAK_WINDOW_MS,
@@ -30,6 +32,11 @@ import {
   getDailyReward,
   getTotalBusinessLevels,
 } from './progression.js';
+import {
+  canPurchasePrestigeNode,
+  getPrestigeTreeEffects,
+  getTotalPrestigePointsEarned,
+} from './prestige.js';
 
 const $ = (id) => document.getElementById(id);
 function trimFixed(value, digits = 2) {
@@ -254,19 +261,163 @@ function updateSpecialButtons(state, now = Date.now()) {
 function updatePrestige(state) {
   const reward = getPrestigeReward(state);
   const eligible = state.lifetime >= PRESTIGE_THRESHOLD && reward > 0;
-  $('prestigeTitle').textContent = state.prestigePoints
-    ? 'Permanent boost: +' + state.prestigePoints * 10 + '% income'
+  const earnedPoints = getTotalPrestigePointsEarned(state);
+  $('prestigeTitle').textContent = earnedPoints
+    ? 'Permanent point boost: +' + formatNumbers(earnedPoints * 10) + '% income'
     : 'Your next run can be stronger';
   $('prestigeDescription').textContent = eligible
-    ? 'Prestige now to gain ' + reward + ' point' + (reward === 1 ? '' : 's') + '. Your cash, businesses, upgrades and goals reset.'
+    ? 'Prestige now to gain ' + reward + ' point' + (reward === 1 ? '' : 's') +
+      '. Your cash, businesses, upgrades and goals reset; earned-point bonuses and skill tree purchases stay.'
     : 'Reach ' +
       formatMoney(PRESTIGE_THRESHOLD) +
-      ' lifetime earned in one run. Each prestige point adds 10% income permanently.';
+      ' lifetime earned in one run. Each point you have earned adds 10% income permanently, even after spending it.';
   $('prestigeProgress').style.width = Math.min(100, (state.lifetime / PRESTIGE_THRESHOLD) * 100) + '%';
   $('prestigeBtn').disabled = !eligible;
   $('prestigeRewardLabel').textContent = eligible
     ? '+' + reward + ' prestige point' + (reward === 1 ? '' : 's')
     : formatMoney(Math.max(0, PRESTIGE_THRESHOLD - state.lifetime)) + ' to go';
+}
+
+function createPrestigeNodeRow(node) {
+  const row = createElement('li', 'prestige-path-item');
+  row.dataset.prestigeNode = node.id;
+  const button = createElement('button', 'prestige-node');
+  button.type = 'button';
+  button.dataset.buyPrestige = node.id;
+  const tier = createElement('span', 'prestige-tier');
+  const icon = createElement('span', 'prestige-node-icon');
+  icon.setAttribute('aria-hidden', 'true');
+  const copy = createElement('span', 'prestige-node-copy');
+  copy.append(
+    createElement('b', 'prestige-node-name'),
+    createElement('small', 'prestige-node-desc'),
+    createElement('small', 'prestige-node-status'),
+  );
+  const cost = createElement('span', 'prestige-node-cost');
+  button.append(tier, icon, copy, cost);
+  row.append(button);
+  return row;
+}
+
+function createPrestigeBranch(branch) {
+  const section = createElement('section', 'prestige-branch');
+  section.dataset.prestigeBranch = branch.id;
+  section.tabIndex = -1;
+  section.setAttribute('aria-labelledby', 'prestigeBranchTitle-' + branch.id);
+  const heading = createElement('div', 'prestige-branch-heading');
+  const icon = createElement('span', 'prestige-branch-icon', branch.icon);
+  icon.setAttribute('aria-hidden', 'true');
+  const copy = createElement('div', 'prestige-branch-copy');
+  const title = createElement('h3', '', branch.name);
+  title.id = 'prestigeBranchTitle-' + branch.id;
+  const description = createElement('p', '', branch.desc);
+  copy.append(title, description);
+  heading.append(icon, copy);
+  const path = createElement('ol', 'prestige-path');
+  path.setAttribute('aria-label', branch.name + ' skills in prerequisite order');
+  section.append(heading, path);
+  return section;
+}
+
+function updatePrestigeNodeRow(row, node, state) {
+  const button = row.querySelector('[data-buy-prestige]');
+  const purchased = (state.prestigeTreePurchased || []).includes(node.id);
+  const availability = canPurchasePrestigeNode(state, node.id);
+  row.classList.toggle('node-owned', purchased);
+  row.classList.toggle('node-available', availability.available);
+  row.classList.toggle('node-locked', !purchased && !availability.available);
+  button.classList.toggle('node-owned', purchased);
+  button.classList.toggle('node-available', availability.available);
+  button.classList.toggle('node-locked', !purchased && !availability.available);
+  button.disabled = !availability.available;
+  button.setAttribute(
+    'aria-label',
+    node.name + '. ' + node.desc + ' Cost: ' + node.cost + ' prestige point' +
+      (node.cost === 1 ? '' : 's') + '. ' + (purchased ? 'Purchased.' : availability.reason),
+  );
+  button.querySelector('.prestige-tier').textContent = 'Tier ' + node.tier;
+  button.querySelector('.prestige-node-icon').textContent = node.icon;
+  button.querySelector('.prestige-node-name').textContent = node.name;
+  button.querySelector('.prestige-node-desc').textContent = node.desc;
+  button.querySelector('.prestige-node-status').textContent = purchased
+    ? 'Permanent skill unlocked'
+    : availability.available
+      ? 'Ready to unlock'
+      : availability.reason;
+  button.querySelector('.prestige-node-cost').textContent = purchased
+    ? '✓ Unlocked'
+    : node.cost + ' point' + (node.cost === 1 ? '' : 's');
+}
+
+export function renderPrestigeTree(state) {
+  const availablePoints = Math.max(0, state.prestigePoints || 0);
+  const earnedPoints = getTotalPrestigePointsEarned(state);
+  const effects = getPrestigeTreeEffects(state);
+  const purchased = Array.isArray(state.prestigeTreePurchased) ? state.prestigeTreePurchased : [];
+  const availableNodes = prestigeTree.filter((node) => canPurchasePrestigeNode(state, node.id).available);
+
+  $('prestigePointsAvailable').textContent = formatNumbers(availablePoints);
+  $('prestigePointsEarned').textContent = formatNumbers(earnedPoints);
+  $('prestigeTreeIncomeBonus').textContent =
+    '+' + formatNumbers(earnedPoints * 10 + effects.incomePercent * 100) + '%';
+
+  if (availableNodes.length) {
+    $('prestigeTreeGuidance').textContent =
+      availableNodes.length + ' skill' + (availableNodes.length === 1 ? '' : 's') +
+      ' ready to unlock. Each purchase takes effect immediately.';
+  } else if (availablePoints < 1) {
+    $('prestigeTreeGuidance').textContent =
+      'Reach ' + formatMoney(PRESTIGE_THRESHOLD) + ' lifetime earned in one run to prestige for your first point.';
+  } else if (purchased.length >= prestigeTree.length) {
+    $('prestigeTreeGuidance').textContent =
+      'Every skill is unlocked. Prestige again to earn more permanent income strength.';
+  } else {
+    const next = prestigeTree.find(
+      (node) => !purchased.includes(node.id) && (!node.prereq || purchased.includes(node.prereq)),
+    );
+    $('prestigeTreeGuidance').textContent = next
+      ? 'Save ' + (next.cost - availablePoints) + ' more point' +
+        (next.cost - availablePoints === 1 ? '' : 's') + ' to unlock ' + next.name + '.'
+      : 'Unlock a branch’s first skill to reveal its next step.';
+  }
+
+  const indicator = $('prestigeTreeIndicator');
+  indicator.hidden = availablePoints < 1;
+  indicator.textContent = availablePoints > 99 ? '99+' : formatNumbers(availablePoints);
+  indicator.setAttribute(
+    'aria-label',
+    availablePoints + ' unspent prestige point' + (availablePoints === 1 ? '' : 's'),
+  );
+  const navButton = indicator.closest('[data-nav-target="tree"]');
+  navButton?.setAttribute(
+    'aria-label',
+    availablePoints
+      ? 'Skills — ' + availablePoints + ' unspent prestige point' + (availablePoints === 1 ? '' : 's')
+      : 'Prestige skill tree',
+  );
+
+  const container = $('prestigeTree');
+  const existingBranches = new Map(
+    Array.from(container.children).map((section) => [section.dataset.prestigeBranch, section]),
+  );
+  const branches = prestigeTreeBranches.map((branch) => {
+    const section = existingBranches.get(branch.id) || createPrestigeBranch(branch);
+    const path = section.querySelector('.prestige-path');
+    const existingNodes = new Map(
+      Array.from(path.children).map((row) => [row.dataset.prestigeNode, row]),
+    );
+    const nodes = prestigeTree
+      .filter((node) => node.branch === branch.id)
+      .sort((first, second) => first.tier - second.tier)
+      .map((node) => {
+        const row = existingNodes.get(node.id) || createPrestigeNodeRow(node);
+        updatePrestigeNodeRow(row, node, state);
+        return row;
+      });
+    syncChildren(path, nodes);
+    return section;
+  });
+  syncChildren(container, branches);
 }
 
 export function renderTimedUI(state) {
@@ -639,6 +790,7 @@ export function renderGame(state, options = {}) {
   renderBusinessMilestones(state);
   renderTimedUI(state);
   renderLegacyMilestones(state);
+  renderPrestigeTree(state);
   updateUpgradeIndicator(state);
 }
 
@@ -664,6 +816,7 @@ export function renderLiveUI(state, options = {}) {
   renderUpgrades(state);
   renderGoals(state);
   renderBusinessMilestones(state);
+  renderPrestigeTree(state);
   updateUpgradeIndicator(state);
 
   renderTimedUI(state);

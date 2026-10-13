@@ -101,3 +101,35 @@ export const TAP_STREAK_WINDOW_MS=1500,TAP_STREAK_MAX_FOLLOWUPS=10,TAP_STREAK_IN
 export const eras=[{value:0,name:'Village Era',icon:'🌱',desc:'Small shops, big ambitions.'},{value:750,name:'City Era',icon:'🏙️',desc:'Your local business becomes a city-wide force.'},{value:12000,name:'Metropolis Era',icon:'🏬',desc:'A full commercial district is taking shape.'},{value:250000,name:'Space Age',icon:'🚀',desc:'Your empire has reached beyond Earth.'},{value:2500000,name:'Global Empire',icon:'🌐',desc:'Connect markets and destinations worldwide.'},{value:10000000,name:'Lunar Era',icon:'🌕',desc:'The Moon is now part of your economy.'},{value:50000000,name:'Martian Era',icon:'🪐',desc:'Build a new frontier on the red planet.'},{value:250000000,name:'Stellar Era',icon:'☀️',desc:'Harness energy on a cosmic scale.'},{value:1000000000,name:'Quantum Era',icon:'🌀',desc:'Your network reaches beyond ordinary reality.'},{value:1e11,name:'Time Era',icon:'⏳',desc:'Profit from the past, present, and future.'},{value:1e13,name:'Multiverse Era',icon:'🪐',desc:'Every parallel reality is a new market.'},{value:1e15,name:'Singularity Era',icon:'🕳️',desc:'Build an economy around collapsed stars.'},{value:1e17,name:'Galactic Era',icon:'🛸',desc:'Civilizations become customers and partners.'},{value:1e19,name:'Universe Era',icon:'🌌',desc:'Create universes to expand your empire.'},{value:1e21,name:'Reality Era',icon:'⚙️',desc:'Engineer the rules of existence.'},{value:1e23,name:'Omniverse Era',icon:'♾️',desc:'Connect all timelines and possibilities.'},{value:1e25,name:'Eternal Era',icon:'👑',desc:'Your empire transcends time itself.'}];
 export const legacyMilestones=[{count:1,icon:'🌱',name:'Second Chance',desc:'Permanent +5% business income.',incomeBonus:.05},{count:2,icon:'⚡',name:'Longer Rush Hour',desc:'Rush Hour lasts 5 seconds longer.',boostSeconds:5},{count:3,icon:'🤝',name:'Founder’s Network',desc:'Permanent +10% business income.',incomeBonus:.10},{count:5,icon:'🌙',name:'Offline Investor',desc:'Offline earnings cap increases by 1 hour.',offlineHours:1},{count:8,icon:'🦾',name:'Golden Touch',desc:'All manual taps earn 2× cash.',tapMultiplier:2},{count:12,icon:'🌌',name:'Galactic Franchise',desc:'Permanent +15% business income.',incomeBonus:.15},{count:20,icon:'🛰️',name:'Deep Space Logistics',desc:'Offline earnings cap increases by 2 more hours.',offlineHours:2},{count:30,icon:'♾️',name:'Multiverse Momentum',desc:'Permanent +25% business income.',incomeBonus:.25}];
 export const businessMilestones=[{id:'levels10',levels:10,title:'Neighborhood favorite',desc:'Own 10 business levels · +5% business income.',reward:150,bonus:0.05,icon:'🏘️'},{id:'levels25',levels:25,title:'Local business network',desc:'Own 25 business levels · +8% business income.',reward:750,bonus:0.08,icon:'🏪'},{id:'levels50',levels:50,title:'Commercial district',desc:'Own 50 business levels · +12% business income.',reward:3000,bonus:0.12,icon:'🏙️'},{id:'levels100',levels:100,title:'Citywide powerhouse',desc:'Own 100 business levels · +16% business income.',reward:12000,bonus:0.16,icon:'🌆'},{id:'levels250',levels:250,title:'National franchise',desc:'Own 250 business levels · +22% business income.',reward:75000,bonus:0.22,icon:'🌐'},{id:'levels500',levels:500,title:'Economic superpower',desc:'Own 500 business levels · +30% business income.',reward:300000,bonus:0.30,icon:'👑'}];
+
+export const PRESTIGE_EFFECT_TYPES = Object.freeze([
+  'income_percent',
+  'tap_flat',
+  'tap_multiplier',
+  'tap_streak_increment',
+  'boost_seconds',
+  'offline_hours',
+  'buy_discount_percent',
+]);
+
+export const prestigeTreeBranches = [
+  { id: 'capital', name: 'Capital', icon: '🪙', desc: 'Turn early earnings into a stronger foundation.' },
+  { id: 'taps', name: 'Taps', icon: '👆', desc: 'Make every quick hand count.' },
+  { id: 'operations', name: 'Operations', icon: '⚙️', desc: 'Get more from Rush Hour and time away.' },
+];
+
+export const prestigeTree = [
+  { id: 'pt_capital_seed', branch: 'capital', tier: 1, name: 'Seed Capital', desc: '+5% business income permanently.', icon: '🌱', cost: 1, prereq: null, effect: { type: 'income_percent', value: 0.05 } },
+  { id: 'pt_capital_wholesale', branch: 'capital', tier: 2, name: 'Wholesale Network', desc: 'Business levels cost 6% less.', icon: '🤝', cost: 2, prereq: 'pt_capital_seed', effect: { type: 'buy_discount_percent', value: 0.06 } },
+  { id: 'pt_capital_compound', branch: 'capital', tier: 3, name: 'Compounding Growth', desc: '+12% business income permanently.', icon: '📈', cost: 3, prereq: 'pt_capital_wholesale', effect: { type: 'income_percent', value: 0.12 } },
+  { id: 'pt_capital_scale', branch: 'capital', tier: 4, name: 'Empire of Scale', desc: '+25% business income permanently.', icon: '🏙️', cost: 5, prereq: 'pt_capital_compound', effect: { type: 'income_percent', value: 0.25 } },
+  { id: 'pt_taps_quick', branch: 'taps', tier: 1, name: 'Quick Hands', desc: '+1 cash per tap, unaffected by combo streaks and Lemonade levels.', icon: '⚡', cost: 1, prereq: null, effect: { type: 'tap_flat', value: 1 } },
+  { id: 'pt_taps_touch', branch: 'taps', tier: 2, name: 'Founder’s Touch', desc: 'Tap income ×1.5.', icon: '✨', cost: 2, prereq: 'pt_taps_quick', effect: { type: 'tap_multiplier', value: 1.5 } },
+  { id: 'pt_taps_streak', branch: 'taps', tier: 3, name: 'Streak School', desc: 'Each tap combo step adds +0.05× more.', icon: '🔥', cost: 3, prereq: 'pt_taps_touch', effect: { type: 'tap_streak_increment', value: 0.05 } },
+  { id: 'pt_taps_rhythm', branch: 'taps', tier: 4, name: 'Golden Rhythm', desc: 'Tap income ×2.', icon: '🥁', cost: 5, prereq: 'pt_taps_streak', effect: { type: 'tap_multiplier', value: 2 } },
+  { id: 'pt_ops_shift', branch: 'operations', tier: 1, name: 'Longer Shift', desc: 'Rush Hour lasts 10 seconds longer.', icon: '⏱️', cost: 1, prereq: null, effect: { type: 'boost_seconds', value: 10 } },
+  { id: 'pt_ops_night_crew', branch: 'operations', tier: 2, name: 'Night Crew', desc: 'Offline earnings are capped at 1 extra hour.', icon: '🌙', cost: 2, prereq: 'pt_ops_shift', effect: { type: 'offline_hours', value: 1 } },
+  { id: 'pt_ops_rush_command', branch: 'operations', tier: 3, name: 'Rush Command', desc: 'Rush Hour lasts 15 seconds longer.', icon: '⚡', cost: 3, prereq: 'pt_ops_night_crew', effect: { type: 'boost_seconds', value: 15 } },
+  { id: 'pt_ops_overnight', branch: 'operations', tier: 4, name: 'Overnight Network', desc: 'Offline earnings are capped at 2 extra hours.', icon: '🌌', cost: 5, prereq: 'pt_ops_rush_command', effect: { type: 'offline_hours', value: 2 } },
+];
+

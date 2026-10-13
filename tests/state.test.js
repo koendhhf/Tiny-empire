@@ -34,6 +34,8 @@ test('valid progress survives save, load, export, and import round trips', () =>
   state.owned = ['pitch'];
   state.claimed = ['g10'];
   state.prestigePoints = 2;
+  state.prestigePointsEarned = 3;
+  state.prestigeTreePurchased = ['pt_capital_seed'];
   state.dailyStreak = 7;
 
   assert.equal(saveState(state, () => storage, now).ok, true);
@@ -46,6 +48,8 @@ test('valid progress survives save, load, export, and import round trips', () =>
   assert.deepEqual(loaded.owned, ['pitch']);
   assert.deepEqual(loaded.claimed, ['g10']);
   assert.equal(loaded.prestigePoints, 2);
+  assert.equal(loaded.prestigePointsEarned, 3);
+  assert.deepEqual(loaded.prestigeTreePurchased, ['pt_capital_seed']);
   assert.equal(loaded.dailyStreak, 7);
   assert.deepEqual(imported, loaded);
 });
@@ -84,6 +88,31 @@ test('partial saves without mission targets receive safe mission defaults', () =
   );
   assert.equal(loaded.cash, 30);
   assert.equal(loaded.lifetime, 50);
+});
+
+test('older saves migrate prestige points and new tree progress round-trips', () => {
+  const oldSave = createInitialState(1234);
+  oldSave.prestigePoints = 2;
+  delete oldSave.prestigePointsEarned;
+  delete oldSave.prestigeTreePurchased;
+  const migrated = parseImportedSave(JSON.stringify(oldSave), 1234);
+
+  assert.equal(migrated.prestigePointsEarned, 2);
+  assert.deepEqual(migrated.prestigeTreePurchased, []);
+
+  const progressed = createInitialState(1234);
+  progressed.prestigePoints = 1;
+  progressed.prestigePointsEarned = 3;
+  progressed.prestigeTreePurchased = ['pt_capital_seed'];
+  const restored = parseImportedSave(serializeSave(progressed), 1234);
+
+  assert.equal(restored.prestigePoints, 1);
+  assert.equal(restored.prestigePointsEarned, 3);
+  assert.deepEqual(restored.prestigeTreePurchased, ['pt_capital_seed']);
+  assert.throws(
+    () => parseImportedSave(JSON.stringify({ ...progressed, prestigeTreePurchased: ['future_node'] }), 1234),
+    Error,
+  );
 });
 
 test('malformed, unknown, or out-of-range imported saves are rejected', () => {

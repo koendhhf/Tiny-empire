@@ -1,4 +1,4 @@
-import { businesses, upgrades, goals, businessMilestones } from './data.js';
+import { businesses, upgrades, goals, businessMilestones, prestigeTree } from './data.js';
 import { localDateKey } from './progression.js';
 
 export const SAVE_KEY = 'tiny-empire-save-v1';
@@ -12,6 +12,7 @@ const MAX_TIMESTAMP = 8.64e15;
 const MAX_FUTURE_TIMESTAMP_MS = 24 * 60 * 60 * 1000;
 const MISSION_IDS = new Set(['taps', 'levels', 'rush']);
 const MISSION_TARGETS = { taps: [10, 15, 20], levels: [3, 5, 7] };
+const PRESTIGE_TREE_IDS = new Set(prestigeTree.map((node) => node.id));
 
 function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -172,9 +173,29 @@ function createNormalizedState(saved, data, now, strict) {
   state.prestigePoints = strict
     ? validateNumber(saved.prestigePoints ?? 0, 'prestige points', MAX_PRESTIGE_POINTS, true)
     : normalizeNumber(saved.prestigePoints, 0, MAX_PRESTIGE_POINTS, true);
+  state.prestigePointsEarned = strict
+    ? validateNumber(
+        saved.prestigePointsEarned ?? state.prestigePoints,
+        'total prestige points earned',
+        MAX_PRESTIGE_POINTS,
+        true,
+      )
+    : Math.max(
+        state.prestigePoints,
+        normalizeNumber(saved.prestigePointsEarned, state.prestigePoints, MAX_PRESTIGE_POINTS, true),
+      );
+  if (strict && state.prestigePointsEarned < state.prestigePoints) {
+    invalidSave('Total prestige points cannot be lower than unspent points');
+  }
   state.prestigeCount = strict
     ? validateNumber(saved.prestigeCount ?? 0, 'prestige count', MAX_COUNTER, true)
     : normalizeNumber(saved.prestigeCount, 0, MAX_COUNTER, true);
+  state.prestigeTreePurchased = normalizeIdList(
+    saved.prestigeTreePurchased,
+    PRESTIGE_TREE_IDS,
+    strict,
+    'prestige tree purchases',
+  );
   state.lastSeen = normalizeTimestamp(saved.lastSeen, now, now, strict, 'last seen time');
   state.dailyClaimDate = normalizeDateKey(saved.dailyClaimDate, strict, 'daily claim date');
   state.dailyStreak = strict
@@ -214,6 +235,8 @@ export function createInitialState(now = Date.now()) {
     claimed: [],
     businessMilestonesClaimed: [],
     prestigePoints: 0,
+    prestigePointsEarned: 0,
+    prestigeTreePurchased: [],
     prestigeCount: 0,
     lastSeen: now,
     dailyClaimDate: '',

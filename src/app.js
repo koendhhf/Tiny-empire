@@ -5,7 +5,6 @@ import {
   PRESTIGE_THRESHOLD,
   TAP_STREAK_WINDOW_MS,
   TAP_STREAK_MAX_FOLLOWUPS,
-  TAP_STREAK_INCREMENT,
   TAP_STREAK_PROGRESS_INTERVAL_MS,
 } from './data.js';
 import {
@@ -39,6 +38,7 @@ import {
   claimDailyBonus,
   resetForPrestige,
 } from './progression.js';
+import { calculateTapComboMultiplier, purchasePrestigeNode } from './prestige.js';
 import {
   formatMoney,
   formatPrecise,
@@ -48,7 +48,6 @@ import {
   renderGame,
   renderLiveUI,
   renderTimedUI,
-  showMessage,
 } from './view.js';
 
 let state = createInitialState();
@@ -71,9 +70,12 @@ function saveGame() {
 }
 
 function showStatus(message) {
-  showMessage(message);
+  const status = $('#treeScreen')?.classList.contains('active') ? $('#treeStatus') : $('#feed');
+  if (status) status.textContent = message;
   if (feedTimer) clearTimeout(feedTimer);
-  feedTimer = setTimeout(() => showMessage(''), 6500);
+  feedTimer = setTimeout(() => {
+    if (status) status.textContent = '';
+  }, 6500);
 }
 
 function loadGame() {
@@ -108,6 +110,7 @@ function captureRenderFocus() {
     'data-claim',
     'data-claim-business-milestone',
     'data-claim-mission',
+    'data-buy-prestige',
   ]) {
     if (active.hasAttribute(attribute)) {
       return { attribute, value: active.getAttribute(attribute) };
@@ -129,6 +132,7 @@ function restoreRenderFocus(target) {
     'data-claim': '[data-claim]',
     'data-claim-business-milestone': '[data-claim-business-milestone]',
     'data-claim-mission': '[data-claim-mission]',
+    'data-buy-prestige': '[data-buy-prestige]',
   };
   const action = Array.from(document.querySelectorAll(selectors[target.attribute] || ''))
     .find((element) => element.getAttribute(target.attribute) === target.value);
@@ -137,7 +141,8 @@ function restoreRenderFocus(target) {
     return;
   }
 
-  const fallback = action?.closest('.biz, .milestone, .mission') || $('#upgrades');
+  const fallback = action?.closest('.biz, .milestone, .mission, .prestige-branch') ||
+    (target.attribute === 'data-buy-prestige' ? $('#prestigeTreeTitle') : $('#upgrades'));
   fallback?.focus({ preventScroll: true });
 }
 
@@ -166,7 +171,7 @@ function registerTapStreakTap(now = Date.now()) {
     ? Math.min(TAP_STREAK_MAX_FOLLOWUPS, tapStreakFollowUps + 1)
     : 0;
   tapStreakLastAt = now;
-  const multiplier = 1 + tapStreakFollowUps * TAP_STREAK_INCREMENT;
+  const multiplier = calculateTapComboMultiplier(state, tapStreakFollowUps);
   if (tapStreakTimer) clearTimeout(tapStreakTimer);
   if (tapStreakProgressTimer) clearInterval(tapStreakProgressTimer);
   renderTapCombo(multiplier, true, tapStreakLastAt, now);
@@ -278,8 +283,7 @@ function prestige() {
   if (state.lifetime < PRESTIGE_THRESHOLD || reward < 1) return;
   const confirmed = confirm(
     'Prestige for ' + reward + ' permanent point' + (reward === 1 ? '' : 's') +
-      '? Cash, business levels, upgrades and goals reset. Your permanent prestige bonus will be ' +
-      ((state.prestigePoints + reward) * 10) + '%.',
+      '? Cash, business levels, upgrades and goals reset. Each total point earned keeps its 10% income bonus, even after spending. Skill tree purchases remain permanent.',
   );
   if (!confirmed) return;
   const result = resetForPrestige(state, Date.now());
@@ -287,11 +291,20 @@ function prestige() {
   state = result.state;
   lastTick = Date.now();
   render();
+  navigateToScreen('tree', true);
   saveGame();
   showStatus(
-    'Prestige complete! Your next empire earns ' + (result.points * 10) +
-      '% more business income permanently.',
+    'Prestige complete! +' + result.reward + ' point' + (result.reward === 1 ? '' : 's') +
+      ' added. Your earned-point bonus and skill tree stay with your empire.',
   );
+}
+
+function buyPrestigeNode(id) {
+  const result = purchasePrestigeNode(state, id);
+  if (!result.changed) return;
+  render();
+  saveGame();
+  showStatus(result.node.name + ' unlocked! ' + result.node.desc);
 }
 
 function exportSave() {
@@ -360,7 +373,7 @@ function handleDelegatedClick(event) {
   const target = event.target instanceof Element ? event.target : null;
   if (!target) return;
   const action = target.closest(
-    '[data-buy], [data-upgrade], [data-claim], [data-claim-business-milestone], [data-claim-mission], #showAllBusinesses, #showFewerBusinesses',
+    '[data-buy], [data-upgrade], [data-claim], [data-claim-business-milestone], [data-claim-mission], [data-buy-prestige], #showAllBusinesses, #showFewerBusinesses',
   );
   if (!action || action.disabled) return;
 
@@ -380,7 +393,26 @@ function handleDelegatedClick(event) {
     collectBusinessMilestone(action.dataset.claimBusinessMilestone);
   } else if (action.hasAttribute('data-claim-mission')) {
     collectMission(action.dataset.claimMission);
+  } else if (action.hasAttribute('data-buy-prestige')) {
+    buyPrestigeNode(action.dataset.buyPrestige);
   }
+}
+
+function navigateToScreen(key, focusHeading = false) {
+  const screen = document.querySelector('[data-screen="' + key + '"]');
+  if (!screen) return false;
+  document.querySelectorAll('[data-nav-target]').forEach((button) => {
+    const active = button.dataset.navTarget === key;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('[data-screen]').forEach((item) => {
+    item.classList.toggle('active', item === screen);
+  });
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (focusHeading) screen.querySelector('.screen-heading h2')?.focus({ preventScroll: true });
+  return true;
 }
 
 function isEditableTarget(target) {
@@ -453,18 +485,7 @@ function bindControls() {
 
   document.querySelectorAll('[data-nav-target]').forEach((button) => {
     button.addEventListener('click', () => {
-      const key = button.dataset.navTarget;
-      if (!document.querySelector('[data-screen="' + key + '"]')) return;
-      document.querySelectorAll('[data-nav-target]').forEach((item) => {
-        const active = item === button;
-        item.classList.toggle('active', active);
-        if (active) item.setAttribute('aria-current', 'page');
-        else item.removeAttribute('aria-current');
-      });
-      document.querySelectorAll('[data-screen]').forEach((screen) => {
-        screen.classList.toggle('active', screen.dataset.screen === key);
-      });
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      navigateToScreen(button.dataset.navTarget);
     });
   });
 }

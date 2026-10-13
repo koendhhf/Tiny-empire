@@ -171,11 +171,31 @@
       <div class="milestones" id="businessMilestones"></div>
     </main>
 
+    <main id="treeScreen" class="game-screen" data-screen="tree" aria-label="Prestige skill tree">
+      <div class="screen-heading">
+        <div class="section-kicker">Permanent investments</div>
+        <h2 id="prestigeTreeTitle" tabindex="-1">🌿 Prestige skill tree</h2>
+        <p>Spend prestige points on skills that stay with your empire through every reset.</p>
+      </div>
+
+      <section class="tree-summary" aria-labelledby="treeSummaryTitle">
+        <h3 id="treeSummaryTitle">Your legacy fund</h3>
+        <div class="tree-summary-metrics">
+          <div><span>Available points</span><strong id="prestigePointsAvailable">0</strong></div>
+          <div><span>Points earned</span><strong id="prestigePointsEarned">0</strong></div>
+          <div><span>Points & skills income</span><strong id="prestigeTreeIncomeBonus">+0%</strong></div>
+        </div>
+        <p id="prestigeTreeGuidance">Reach $300K lifetime earned in one run to prestige for your first point.</p>
+      </section>
+      <div class="tree-status" id="treeStatus" role="status" aria-live="polite"></div>
+      <div class="prestige-tree" id="prestigeTree" aria-label="Prestige skill branches"></div>
+    </main>
+
     <main id="legacyScreen" class="game-screen" data-screen="legacy" aria-label="Prestige and legacy">
       <div class="screen-heading">
         <div class="section-kicker">The long game</div>
         <h2>👑 Empire prestige</h2>
-        <p>Trade a finished run for permanent income strength.</p>
+        <p>Trade a finished run for permanent points and skills.</p>
       </div>
       <section class="milestones prestige-panel" id="prestigePanel">
         <div class="milestone">
@@ -193,7 +213,7 @@
         <div class="section-copy">
           <div class="section-kicker">What carries forward</div>
           <h2>🧬 Prestige legacy</h2>
-          <p>Earn permanent milestones across resets and make each future run stronger.</p>
+            <p>Point bonuses, skill tree purchases, and legacy milestones stay after every reset.</p>
         </div>
       </div>
       <section class="milestones legacy-panel" id="legacyPanel" aria-live="polite"></section>
@@ -205,7 +225,7 @@
           <button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button>
           <input id="importSaveFile" type="file" accept=".json,application/json" hidden>
         </div>
-        <div class="footer">Offline earnings are capped at 4 hours; legacy milestones can extend the cap to 7 hours.</div>
+        <div class="footer">Offline earnings start with a 4-hour cap. Legacy milestones and Operations skills can extend it.</div>
       </section>
     </main>
 
@@ -216,6 +236,10 @@
       <button type="button" class="nav-item" data-nav-target="upgrades" aria-label="Upgrades">
         <span class="nav-icon" aria-hidden="true">⬆</span><span>Upgrades</span>
         <span class="nav-alert" id="upgradeAvailableIndicator" aria-label="Upgrade available" title="You can afford an upgrade" hidden>!</span>
+      </button>
+      <button type="button" class="nav-item" data-nav-target="tree" aria-label="Prestige skill tree">
+        <span class="nav-icon" aria-hidden="true">🌿</span><span>Skills</span>
+        <span class="nav-alert tree-points" id="prestigeTreeIndicator" hidden>0</span>
       </button>
       <button type="button" class="nav-item" data-nav-target="legacy">
         <span class="nav-icon" aria-hidden="true">👑</span><span>Legacy</span>

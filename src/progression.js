@@ -200,7 +200,8 @@ export function resetForPrestige(state, now = Date.now()) {
     return { changed: false, state, reward, points: state.prestigePoints };
   }
 
-  const points = state.prestigePoints + reward;
+  const points = Math.min(1e300, state.prestigePoints + reward);
+  const pointsEarned = Math.min(1e300, (state.prestigePointsEarned ?? state.prestigePoints) + reward);
   const prestigeCount = Math.min(1e9, state.prestigeCount + 1);
   const levels = {};
   businesses.forEach((business) => {
@@ -214,6 +215,10 @@ export function resetForPrestige(state, now = Date.now()) {
     claimed: [],
     businessMilestonesClaimed: [],
     prestigePoints: points,
+    prestigePointsEarned: pointsEarned,
+    prestigeTreePurchased: Array.isArray(state.prestigeTreePurchased)
+      ? state.prestigeTreePurchased.slice()
+      : [],
     prestigeCount,
     lastSeen: now,
     dailyClaimDate: state.dailyClaimDate,
