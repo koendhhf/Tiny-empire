@@ -76,6 +76,14 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+.biz:focus-visible,
+.mission:focus-visible,
+.milestone:focus-visible,
+#upgrades:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
 button:disabled {
   border-color: var(--border);
   background: var(--surface-alt);

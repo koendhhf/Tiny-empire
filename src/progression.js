@@ -7,7 +7,7 @@ import {
   businessMilestones,
   PRESTIGE_THRESHOLD,
 } from './data.js';
-import { calculateBaseIncome } from './economy.js';
+import { addCash, addEarnings, calculateBaseIncome } from './economy.js';
 
 export function localDateKey(now = Date.now()) {
   const date = new Date(now);
@@ -123,15 +123,21 @@ export function getDailyReward(state, baseIncome = calculateBaseIncome(state), n
 }
 
 export function recordTap(state) {
-  state.missionProgress.taps = (state.missionProgress.taps || 0) + 1;
+  state.missionProgress.taps = Math.min(
+    state.missionTargets.taps,
+    (state.missionProgress.taps || 0) + 1,
+  );
 }
 
 export function recordLevelsPurchased(state, count) {
-  state.missionProgress.levels = (state.missionProgress.levels || 0) + count;
+  state.missionProgress.levels = Math.min(
+    state.missionTargets.levels,
+    (state.missionProgress.levels || 0) + count,
+  );
 }
 
 export function recordRush(state) {
-  state.missionProgress.rush = (state.missionProgress.rush || 0) + 1;
+  state.missionProgress.rush = Math.min(1, (state.missionProgress.rush || 0) + 1);
 }
 
 export function claimMission(state, id, now = Date.now()) {
@@ -141,8 +147,7 @@ export function claimMission(state, id, now = Date.now()) {
     return { changed: false, mission: null, reward: 0 };
   }
   state.missionClaimed.push(id);
-  state.cash += mission.reward;
-  state.lifetime += mission.reward;
+  addEarnings(state, mission.reward);
   return { changed: true, mission, reward: mission.reward };
 }
 
@@ -152,8 +157,7 @@ export function claimGoal(state, id) {
     return { changed: false, goal: null };
   }
   state.claimed.push(id);
-  state.cash += goal.reward;
-  state.lifetime += goal.reward;
+  addEarnings(state, goal.reward);
   return { changed: true, goal };
 }
 
@@ -171,7 +175,7 @@ export function claimBusinessMilestone(state, id) {
     return { changed: false, milestone: null };
   }
   state.businessMilestonesClaimed.push(id);
-  state.cash += milestone.reward;
+  addCash(state, milestone.reward);
   return { changed: true, milestone };
 }
 
@@ -182,10 +186,11 @@ export function claimDailyBonus(state, baseIncome = calculateBaseIncome(state), 
   }
   const reward = getDailyReward(state, baseIncome, now);
   state.dailyStreak =
-    state.dailyClaimDate === yesterdayDateKey(now) ? Math.max(0, state.dailyStreak || 0) + 1 : 1;
+    state.dailyClaimDate === yesterdayDateKey(now)
+      ? Math.min(36500, Math.max(0, state.dailyStreak || 0) + 1)
+      : 1;
   state.dailyClaimDate = today;
-  state.cash += reward;
-  state.lifetime += reward;
+  addEarnings(state, reward);
   return { changed: true, reward, streak: state.dailyStreak };
 }
 
@@ -196,7 +201,7 @@ export function resetForPrestige(state, now = Date.now()) {
   }
 
   const points = state.prestigePoints + reward;
-  const prestigeCount = state.prestigeCount + 1;
+  const prestigeCount = Math.min(1e9, state.prestigeCount + 1);
   const levels = {};
   businesses.forEach((business) => {
     levels[business.id] = business.id === 'lemonade' ? 1 : 0;

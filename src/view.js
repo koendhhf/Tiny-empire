@@ -32,6 +32,11 @@ import {
 } from './progression.js';
 
 const $ = (id) => document.getElementById(id);
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
+}
 
 function trimFixed(value, digits = 2) {
   return value.toFixed(digits).replace(/\.?0+$/, '');
@@ -146,11 +151,11 @@ function renderLegacyMilestones(state) {
         '"><div class="check">' +
         (active ? '✓' : milestone.count) +
         '</div><div style="min-width:0;flex:1"><b>' +
-        milestone.icon +
+        escapeHtml(milestone.icon) +
         ' ' +
-        milestone.name +
+        escapeHtml(milestone.name) +
         '</b><small>' +
-        milestone.desc +
+        escapeHtml(milestone.desc) +
         '</small></div><span class="chip">' +
         (active ? 'Unlocked' : 'Prestige ' + milestone.count) +
         '</span></div>'
@@ -248,41 +253,76 @@ export function renderTimedUI(state) {
   updatePrestige(state);
 }
 
+function createMissionRow(mission) {
+  const row = document.createElement('div');
+  row.className = 'mission';
+  row.tabIndex = -1;
+  row.dataset.missionId = mission.id;
+
+  const icon = document.createElement('div');
+  icon.className = 'mission-icon';
+  icon.setAttribute('aria-hidden', 'true');
+
+  const copy = document.createElement('div');
+  copy.className = 'mission-copy';
+  const title = document.createElement('b');
+  const description = document.createElement('small');
+  const track = document.createElement('div');
+  track.className = 'progress-track';
+  track.setAttribute('role', 'progressbar');
+  const fill = document.createElement('div');
+  fill.className = 'progress-fill';
+  track.append(fill);
+  const detail = document.createElement('small');
+  detail.className = 'mission-progress';
+  copy.append(title, description, track, detail);
+
+  const button = document.createElement('button');
+  button.className = 'buy';
+  button.type = 'button';
+  button.dataset.claimMission = mission.id;
+  row.append(icon, copy, button);
+  return row;
+}
+
 function renderDailyMissions(state) {
   const missions = getMissionDefinitions(state);
+  const container = $('dailyMissions');
   const completed = missions.filter((mission) => state.missionClaimed.includes(mission.id)).length;
   $('missionSummary').textContent = completed + ' / ' + missions.length + ' complete';
-  $('dailyMissions').innerHTML = missions
-    .map((mission) => {
-      const claimed = state.missionClaimed.includes(mission.id);
-      const ready = mission.progress >= mission.target;
-      return (
-        '<div class="mission ' +
-        (claimed ? 'done' : '') +
-        '"><div class="mission-icon" aria-hidden="true">' +
-        (claimed ? '✓' : mission.icon) +
-        '</div><div class="mission-copy"><b>' +
-        mission.title +
-        '</b><small>' +
-        mission.desc +
-        '</small><div class="progress-track"><div class="progress-fill" style="width:' +
-        Math.min(100, (mission.progress / mission.target) * 100) +
-        '%"></div></div><small>' +
-        Math.min(mission.progress, mission.target) +
-        ' / ' +
-        mission.target +
-        ' · Reward ' +
-        formatMoney(mission.reward) +
-        '</small></div><button class="buy" data-claim-mission="' +
-        mission.id +
-        '" ' +
-        (!ready || claimed ? 'disabled' : '') +
-        '>' +
-        (claimed ? 'Done' : ready ? 'Claim' : 'In progress') +
-        '</button></div>'
-      );
-    })
-    .join('');
+
+  missions.forEach((mission) => {
+    let row = Array.from(container.children).find((item) => item.dataset.missionId === mission.id);
+    if (!row) {
+      row = createMissionRow(mission);
+      container.append(row);
+    }
+
+    const claimed = state.missionClaimed.includes(mission.id);
+    const ready = mission.progress >= mission.target;
+    const current = Math.max(0, Math.min(mission.target, mission.progress));
+    const percent = Math.max(0, Math.min(100, (current / mission.target) * 100));
+    row.classList.toggle('done', claimed);
+    row.querySelector('.mission-icon').textContent = claimed ? '✓' : mission.icon;
+    row.querySelector('.mission-copy b').textContent = mission.title;
+    row.querySelector('.mission-copy > small').textContent = mission.desc;
+    row.querySelector('.progress-fill').style.width = percent + '%';
+    const track = row.querySelector('.progress-track');
+    track.setAttribute('aria-label', mission.title + ' progress');
+    track.setAttribute('aria-valuemin', '0');
+    track.setAttribute('aria-valuemax', String(mission.target));
+    track.setAttribute('aria-valuenow', String(current));
+    track.setAttribute('aria-valuetext', current + ' of ' + mission.target);
+    row.querySelector('.mission-progress').textContent =
+      current + ' / ' + mission.target + ' · Reward ' + formatMoney(mission.reward);
+    const button = row.querySelector('button');
+    button.disabled = !ready || claimed;
+    button.textContent = claimed ? 'Done' : ready ? 'Claim' : 'In progress';
+  });
+
+  Array.from(container.children).forEach((row) => {
+    if (!missions.some((mission) => mission.id === row.dataset.missionId)) row.remove();
+  });
 
   const goal = goals.find((item) => !state.claimed.includes(item.id));
   if (goal) {
@@ -349,24 +389,26 @@ export function renderGame(state, options = {}) {
         const nextTier = tierThresholds.find((threshold) => threshold > level);
         const canAffordNext = state.cash >= calculatePurchaseCost(state, business, 1) && unlocked;
         const levelText = level
-          ? 'Level ' +
+          ? escapeHtml('Level ' +
             level +
             ' · ' +
             formatPrecise(rate) +
             '/s' +
-            (nextTier ? ' · ×2 at ' + nextTier : ' · All tiers reached')
-          : '<span class="unlock">Unlock at ' + formatMoney(business.unlock) + ' lifetime earned</span>';
+            (nextTier ? ' · ×2 at ' + nextTier : ' · All tiers reached'))
+          : '<span class="unlock">Unlock at ' + escapeHtml(formatMoney(business.unlock)) + ' lifetime earned</span>';
         const progress = Math.min(100, (state.lifetime / Math.max(1, business.unlock)) * 100);
         return (
           '<article class="biz ' +
           (!unlocked ? 'locked ' : '') +
           (canAffordNext ? 'affordable' : '') +
-          '"><div class="biz-icon" aria-hidden="true">' +
-          business.icon +
+          '" data-business-row="' +
+          escapeHtml(business.id) +
+          '" tabindex="-1"><div class="biz-icon" aria-hidden="true">' +
+          escapeHtml(business.icon) +
           '</div><div><h3>' +
-          business.name +
+          escapeHtml(business.name) +
           '</h3><p class="desc">' +
-          business.desc +
+          escapeHtml(business.desc) +
           '</p><div class="level">' +
           levelText +
           '</div>' +
@@ -378,13 +420,13 @@ export function renderGame(state, options = {}) {
               '%"></div></div></div>'
             : '') +
           '</div><button class="buy" data-buy="' +
-          business.id +
+          escapeHtml(business.id) +
           '" ' +
           (!unlocked || !affordable ? 'disabled' : '') +
           '><span class="buy-label">' +
-          getBuyLabel(state, business, count, buyMode) +
+          escapeHtml(getBuyLabel(state, business, count, buyMode)) +
           '</span><span class="price">' +
-          formatMoney(price) +
+          escapeHtml(formatMoney(price)) +
           '</span></button></article>'
         );
       })
@@ -423,17 +465,17 @@ export function renderGame(state, options = {}) {
         ' ' +
         (locked ? 'locked-tier' : '') +
         '" data-upgrade="' +
-        upgrade.id +
+        escapeHtml(upgrade.id) +
         '" ' +
         (has || locked || state.cash < upgrade.cost ? 'disabled' : '') +
         '><span class="u-icon" aria-hidden="true">' +
-        upgrade.icon +
+        escapeHtml(upgrade.icon) +
         '</span><b>' +
-        upgrade.name +
+        escapeHtml(upgrade.name) +
         '</b><small>' +
-        upgrade.desc +
+        escapeHtml(upgrade.desc) +
         '</small><span class="u-price">' +
-        (has ? '✓ Purchased' : locked ? 'Own ' + upgrade.threshold + ' · ' + formatMoney(upgrade.cost) : formatMoney(upgrade.cost)) +
+        escapeHtml(has ? '✓ Purchased' : locked ? 'Own ' + upgrade.threshold + ' · ' + formatMoney(upgrade.cost) : formatMoney(upgrade.cost)) +
         '</span></button>'
       );
     })
@@ -447,24 +489,26 @@ export function renderGame(state, options = {}) {
       return (
         '<div class="milestone ' +
         (claimed ? 'done' : '') +
-        '"><div class="check">' +
+        '" data-goal-row="' +
+        escapeHtml(goal.id) +
+        '" tabindex="-1"><div class="check">' +
         (claimed ? '✓' : done ? '!' : '·') +
         '</div><div style="min-width:0;flex:1"><b>' +
-        goal.title +
+        escapeHtml(goal.title) +
         '</b><small>' +
-        goal.desc +
+        escapeHtml(goal.desc) +
         '</small><div class="progress-track"><div class="progress-fill" data-goal-progress="' +
-        goal.id +
+        escapeHtml(goal.id) +
         '" style="width:' +
         progress +
         '%"></div></div></div><button class="buy" data-claim="' +
-        goal.id +
+        escapeHtml(goal.id) +
         '" ' +
         (!done || claimed ? 'disabled' : '') +
         '>' +
         (claimed ? 'Claimed' : done ? 'Claim' : 'Reward') +
         '<span class="price">' +
-        formatMoney(goal.reward) +
+        escapeHtml(formatMoney(goal.reward)) +
         '</span></button></div>'
       );
     })
@@ -479,12 +523,14 @@ export function renderGame(state, options = {}) {
       return (
         '<div class="milestone ' +
         (claimed ? 'done' : '') +
-        '"><div class="check">' +
-        (claimed ? '✓' : done ? '!' : milestone.icon) +
+        '" data-business-milestone-row="' +
+        escapeHtml(milestone.id) +
+        '" tabindex="-1"><div class="check">' +
+        (claimed ? '✓' : done ? '!' : escapeHtml(milestone.icon)) +
         '</div><div style="min-width:0;flex:1"><b>' +
-        milestone.title +
+        escapeHtml(milestone.title) +
         '</b><small>' +
-        milestone.desc +
+        escapeHtml(milestone.desc) +
         '</small><div class="progress-track"><div class="progress-fill" style="width:' +
         progress +
         '%"></div></div><small class="business-milestone-note">' +
@@ -492,13 +538,13 @@ export function renderGame(state, options = {}) {
         ' / ' +
         milestone.levels +
         ' total levels</small></div><button class="buy" data-claim-business-milestone="' +
-        milestone.id +
+        escapeHtml(milestone.id) +
         '" ' +
         (!done || claimed ? 'disabled' : '') +
         '>' +
         (claimed ? 'Claimed' : done ? 'Claim' : 'Reward') +
         '<span class="price">' +
-        formatMoney(milestone.reward) +
+        escapeHtml(formatMoney(milestone.reward)) +
         '</span></button></div>'
       );
     })
@@ -511,6 +557,7 @@ export function renderGame(state, options = {}) {
 
 export function renderLiveUI(state, options = {}) {
   const buyMode = options.buyMode || '1';
+  renderDailyMissions(state);
   $('cash').textContent = formatMoney(state.cash);
   $('income').textContent = '+' + formatPrecise(calculateIncome(state)) + ' / second';
   $('lifetime').textContent = formatMoney(state.lifetime);
@@ -524,6 +571,7 @@ export function renderLiveUI(state, options = {}) {
   const next = businesses.find((business) => state.lifetime < business.unlock && business.id !== 'lemonade');
   $('nextUnlock').textContent = next ? 'Next unlock: ' + formatMoney(next.unlock) : 'All businesses unlocked';
   updateEra(state);
+  updateCompactUnlock(state, next);
 
   document.querySelectorAll('[data-buy]').forEach((button) => {
     const business = businesses.find((item) => item.id === button.dataset.buy);

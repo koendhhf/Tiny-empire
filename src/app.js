@@ -19,6 +19,7 @@ import {
 import {
   calculateBaseIncome,
   calculateOfflineEarnings,
+  addEarnings,
   collectPassiveIncome,
   collectCash,
   purchaseBusiness,
@@ -83,15 +84,61 @@ function loadGame() {
   );
   const { earned } = calculateOfflineEarnings(state, Date.now());
   if (earned >= 0.1) {
-    state.cash += earned;
-    state.lifetime += earned;
+    addEarnings(state, earned);
     offlineMessage = 'Welcome back! Your businesses earned ' + formatPrecise(earned) + ' while you were away.';
   }
 }
 
 function render() {
+  const focusedAction = captureRenderFocus();
   ensureDailyMissions(state, Date.now());
   renderGame(state, { buyMode, showAllBusinesses });
+  restoreRenderFocus(focusedAction);
+}
+
+function captureRenderFocus() {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return null;
+  if (active.id === 'showAllBusinesses') return { id: 'showFewerBusinesses' };
+  if (active.id === 'showFewerBusinesses') return { id: 'showAllBusinesses' };
+
+  for (const attribute of [
+    'data-buy',
+    'data-upgrade',
+    'data-claim',
+    'data-claim-business-milestone',
+    'data-claim-mission',
+  ]) {
+    if (active.hasAttribute(attribute)) {
+      return { attribute, value: active.getAttribute(attribute) };
+    }
+  }
+  return null;
+}
+
+function restoreRenderFocus(target) {
+  if (!target) return;
+  if (target.id) {
+    document.getElementById(target.id)?.focus({ preventScroll: true });
+    return;
+  }
+
+  const selectors = {
+    'data-buy': '[data-buy]',
+    'data-upgrade': '[data-upgrade]',
+    'data-claim': '[data-claim]',
+    'data-claim-business-milestone': '[data-claim-business-milestone]',
+    'data-claim-mission': '[data-claim-mission]',
+  };
+  const action = Array.from(document.querySelectorAll(selectors[target.attribute] || ''))
+    .find((element) => element.getAttribute(target.attribute) === target.value);
+  if (action && !action.disabled) {
+    action.focus({ preventScroll: true });
+    return;
+  }
+
+  const fallback = action?.closest('.biz, .milestone, .mission') || $('#upgrades');
+  fallback?.focus({ preventScroll: true });
 }
 
 function updateLiveUI() {
@@ -130,11 +177,16 @@ function registerTapStreakTap(now = Date.now()) {
 
 function collect() {
   ensureDailyMissions(state, Date.now());
+  const oldLifetime = state.lifetime;
   const comboMultiplier = registerTapStreakTap();
   const result = collectCash(state, comboMultiplier);
   recordTap(state);
   playTapAnimation();
-  render();
+  const unlockedBusiness = businesses.some(
+    (business) => oldLifetime < business.unlock && state.lifetime >= business.unlock,
+  );
+  if (unlockedBusiness) render();
+  else updateLiveUI();
   saveGame();
   showStatus(
     'Nice! You collected ' + formatMoney(result.gain) + '. Combo multiplier: ' +
@@ -271,7 +323,11 @@ function importSave(event) {
       const imported = parseImportedSave(String(reader.result || ''));
       if (
         !confirm(
-          'Import this save and replace the progress on this device? Export your current save first if you want to keep it.',
+          'Import this save and replace progress on this device?\n\n' +
+            'Lifetime earned: ' + formatMoney(imported.lifetime) + '\n' +
+            'Current cash: ' + formatMoney(imported.cash) + '\n' +
+            'Prestige points: ' + imported.prestigePoints + '\n\n' +
+            'Export your current save first if you want to keep it.',
         )
       ) {
         return;
