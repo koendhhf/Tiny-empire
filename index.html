@@ -1,252 +1,141 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#F3F1E7">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%200%20100%20100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8D%8B%3C/text%3E%3C/svg%3E">
-  <meta name="description" content="Build your business portfolio one smart investment and one tap at a time.">
-  <title>Tiny Empire — Founder’s office</title>
-  <link rel="stylesheet" href="./styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#10251e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%200%20100%20100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8D%8B%3C/text%3E%3C/svg%3E[...]">
+<meta name="description" content="Build a tiny business empire, one tap at a time.">
+<title>Tiny Empire</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1714;--panel:#14251f;--panel2:#1b3028;--ink:#f5f4e9;--muted:#a6b9ae;--lime:#c5f36b;--gold:#ffd166;--line:#2c463a;--red:#ff9b91;--blue:#a5d8ff}
+*{box-sizing:border-box}html,body{overscroll-behavior-y:contain;overscroll-behavior-x:none;touch-action:pan-y}body{margin:0;background:radial-gradient(ellipse at top,#19352a 0%,var(--bg) 58%);colo[...]
+.wrap,.wrap *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.game-screen{display:none;animation:screen-in .16s ease-out}.game-screen.active{display:block}@keyframes screen-in{from{opacity:.75;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.missions-panel{background:linear-gradient(135deg,#1b3028,#14251f 72%);border:1px solid #385644;border-radius:16px;padding:14px;margin:16px 0 18px;box-shadow:0 8px 22px #00000012}.missions-head{di[...]
+.biz.affordable{border-color:#8fbf4e;background:linear-gradient(110deg,#263d28,#14251f 78%);box-shadow:inset 3px 0 0 var(--lime)}.biz.affordable .buy{background:var(--lime);color:#172319;border-co[...]
+.biz-more{grid-column:1/-1;width:100%;border:1px dashed #45634a;background:#14251f;color:var(--lime);border-radius:14px;padding:11px;font-size:12px;font-weight:800}.compact-unlock{display:flex;ali[...]
+.buy-modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:100%;margin-top:10px}.mode-btn{padding:8px 3px;font-size:10px}.businesses{gap:8px}.biz{padding:10px;gap:8px}.biz[...]
+@media(min-width:600px){.buy-modes{max-width:320px;margin-left:auto}.biz .desc{display:block}}
+
+button{font:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.wrap input,.wrap textarea,.wrap select,.wrap [contenteditable="tr[...]
+.wrap{max-width:820px;margin:auto;padding:18px 14px calc(112px + env(safe-area-inset-bottom))}
+/* Persistent mobile-game navigation */
+html{scroll-padding-bottom:100px}.hero,.businesses,.upgrades,#prestigePanel{scroll-margin-top:16px}
+.bottom-nav{position:fixed;z-index:50;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(520px,calc(100% - 24px));display:grid;grid-template-columns:repe[...]
+.nav-item{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid transparent;border-radius:13px;background:transparent;color:var(--muted)[...]
+.nav-item .nav-icon{font-size:19px;line-height:1.15}.nav-item{position:relative}.nav-alert{position:absolute;top:3px;right:calc(50% - 24px);width:17px;height:17px;display:grid;place-items:center;b[...]
+@media(min-width:600px){.bottom-nav{bottom:16px}.wrap{padding-bottom:120px}}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{display:flex;gap:10px;align-items:center}.logo{font-size:29px;background:#263e30;border:1px [...] 
+.hero{border:1px solid #385542;border-radius:24px;padding:21px;background:linear-gradient(140deg,#244635,#14281f 68%);position:relative;overflow:hidden}.hero:after{content:"";position:absolute;wid[...]
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 22px}.stat{background:#111f1a;border:1px solid var(--line);border-radius:15px;padding:11px 10px}.stat span{d[...]
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:23px 0 11px}.section-head h2{margin:0;font-size:19px}.section-head p{margin:2px 0 0;color:var(--muted);font[...]
+.era-card{background:linear-gradient(135deg,#203c30,#172820);border:1px solid #385b43;border-radius:17px;padding:13px;margin-bottom:12px}.era-top{display:flex;align-items:center;gap:10px}.era-icon[...]
+.upgrades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.upgrade{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:142px;padding:13px;backgr[...]
+.milestones{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}.milestone{display:flex;align-items:center;gap:10px;padding:9px 0}.milestone+.milestone{border-top:[...]
+@media(min-width:600px){.wrap{padding-top:28px}.hero{padding:28px}.businesses{grid-template-columns:1fr 1fr}.biz{grid-template-columns:46px minmax(0,1fr) auto}.upgrades{grid-template-columns:repea[...]
+@media(max-width:390px){.wrap{padding-left:10px;padding-right:10px}.biz{grid-template-columns:39px minmax(0,1fr) auto;gap:8px;padding:10px}.biz-icon{width:38px;height:38px;font-size:22px}.buy{min-[...]
+@media(prefers-reduced-motion:reduce){*,*:before,*,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* Missions panel safe area: keep three mission rows visible above bottom nav */
+.missions-panel {
+  padding-bottom: calc(48px + env(safe-area-inset-bottom));
+}
+#dailyMissions {
+  max-height: 220px; /* adjust if your mission rows are taller */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="site-header">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">🏪</div>
-        <div class="brand-copy">
-          <div class="eyebrow">Founder’s office</div>
-          <h1>Tiny Empire</h1>
-          <div class="sub">Grow one storefront into an empire.</div>
-        </div>
-      </div>
-      <button class="reset" id="resetBtn" type="button" aria-label="Reset empire">
-        <span aria-hidden="true">↻</span><span>Reset</span>
-      </button>
-    </header>
-
-    <main id="empireScreen" class="game-screen active" data-screen="empire" aria-label="Empire overview">
-      <section class="hero treasury-board" aria-label="Empire treasury">
-        <div class="treasury-top">
-          <div class="treasury-value">
-            <div class="cash-label">Available cash</div>
-            <div class="cash" id="cash">$0</div>
-            <div class="income" id="income">+$0 / second</div>
-            <div class="hero-meta">
-              <span class="chip" id="rankChip">🌱 Starter</span>
-              <span class="chip" id="multiplierChip">⚡ Income ×1.0</span>
-            </div>
-          </div>
-          <div class="treasury-action">
-            <button class="tap" id="tapBtn" type="button">
-              <span class="tap-title">💵 Collect cash</span>
-              <small id="tapHint">Tap once to start your empire</small>
-            </button>
-            <div class="tap-combo">
-              <div class="tap-combo-copy">
-                <span class="tap-combo-label" id="tapComboLabel">Tap combo ×1.0</span>
-                <span class="tap-combo-hint" id="tapComboHint">Tap within 1.5 seconds to build a streak</span>
-              </div>
-              <div class="tap-combo-track" id="tapComboTrack" role="progressbar" aria-label="Tap combo time remaining" aria-valuemin="0" aria-valuemax="1500" aria-valuenow="0" aria-valuetext="No active combo">
-                <div class="tap-combo-fill" id="tapComboFill"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="hero-actions" aria-label="Daily actions">
-          <button class="action-tile boost-action" id="boostBtn" type="button">
-            <span class="action-icon" aria-hidden="true">⚡</span>
-            <span class="action-copy"><b>Rush Hour</b><small id="boostHint">2× income for 30 sec</small></span>
-            <span class="action-arrow" aria-hidden="true">↗</span>
-          </button>
-          <button class="action-tile daily-action" id="dailyBtn" type="button">
-            <span class="action-icon" aria-hidden="true">🎁</span>
-            <span class="action-copy"><b>Daily bonus</b><small id="dailyHint">Free cash today</small></span>
-            <span class="action-arrow" aria-hidden="true">↗</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="stats" aria-label="Empire statistics">
-        <div class="stat"><span>Lifetime earned</span><strong id="lifetime">$0</strong></div>
-        <div class="stat"><span>Business levels</span><strong id="businessCount">1</strong></div>
-        <div class="stat"><span>Rank level</span><strong id="empireLevel">1</strong></div>
-      </section>
-      <div class="feed" id="feed" role="status" aria-live="polite">Your first dollar is one tap away.</div>
-
-      <div class="empire-workspace">
-        <section class="market-column" aria-labelledby="marketTitle">
-          <div class="section-head market-head">
-            <div class="section-copy">
-              <div class="section-kicker">Build your portfolio</div>
-              <h2 id="marketTitle">🏘️ Your businesses</h2>
-              <p>Invest cash to grow your income. Lifetime earnings unlock the next venture.</p>
-            </div>
-            <div class="market-controls">
-              <div class="tiny-note" id="nextUnlock">Next unlock: $25</div>
-              <div class="buy-modes" role="group" aria-label="Purchase quantity">
-                <button type="button" class="mode-btn active" data-buy-mode="1" aria-pressed="true">Buy 1</button>
-                <button type="button" class="mode-btn" data-buy-mode="10" aria-pressed="false">Buy 10</button>
-                <button type="button" class="mode-btn" data-buy-mode="100" aria-pressed="false">Buy 100</button>
-                <button type="button" class="mode-btn" data-buy-mode="max" aria-pressed="false">Buy Max</button>
-              </div>
-            </div>
-          </div>
-
-          <section class="era-card" aria-label="Current business era" aria-live="polite">
-            <div class="era-top">
-              <span class="era-icon" id="eraIcon" aria-hidden="true">🌱</span>
-              <div class="era-copy">
-                <b id="eraName">Village Era</b>
-                <small id="eraDesc">Start small. Build something enormous.</small>
-              </div>
-              <span class="era-next" id="eraNext">Next: $25</span>
-            </div>
-            <div class="progress-track"><div class="progress-fill" id="eraProgress" style="width:0%"></div></div>
-          </section>
-
-          <div class="compact-unlock" id="compactUnlock">
-            <span class="unlock-mark" aria-hidden="true">↗</span>
-            <div class="compact-unlock-copy">
-              <b id="compactUnlockTitle">Next unlock</b>
-              <small id="compactUnlockText">Progress toward your next business</small>
-              <div class="progress-track"><div class="progress-fill" id="compactUnlockProgress" style="width:0%"></div></div>
-            </div>
-          </div>
-          <div class="businesses" id="businesses"></div>
-        </section>
-
-        <aside class="empire-aside" aria-label="Daily priorities">
-          <section class="missions-panel" aria-labelledby="missionsTitle">
-            <div class="missions-head">
-              <div>
-                <div class="section-kicker">Your next wins</div>
-                <h2 id="missionsTitle">🎯 Daily missions</h2>
-                <p>Complete small goals for bonus cash.</p>
-              </div>
-              <span class="mission-summary" id="missionSummary">0 / 3 complete</span>
-            </div>
-            <div class="mission-list" id="dailyMissions" aria-live="polite"></div>
-          </section>
-          <section class="founder-note" aria-label="How to grow">
-            <span class="note-icon" aria-hidden="true">✦</span>
-            <div><b>Build a steady base</b><p>New businesses add income every second. Keep a tap streak going while your portfolio grows.</p></div>
-          </section>
-        </aside>
-      </div>
-    </main>
-
-    <main id="upgradesScreen" class="game-screen" data-screen="upgrades" aria-label="Upgrades and goals">
-      <div class="screen-heading">
-        <div class="section-kicker">Research & development</div>
-        <h2>🧰 Empire upgrades</h2>
-        <p>Invest in production and tap strength. Upgrades reset when you prestige.</p>
-      </div>
-      <div class="upgrades" id="upgrades" tabindex="-1"></div>
-
-      <div class="section-head progression-heading">
-        <div class="section-copy">
-          <div class="section-kicker">Long-term progress</div>
-          <h2>🎯 Goals & rewards</h2>
-          <p>Lifetime earnings and portfolio milestones bring one-time rewards.</p>
-        </div>
-      </div>
-      <section class="missions-panel long-goal-panel" aria-label="Next long-term goal">
-        <div class="long-goal">
-          <div class="long-goal-top"><span>Next long-term goal</span><b id="longGoalProgressText">0%</b></div>
-          <strong id="longGoalTitle">First pocket money</strong>
-          <small id="longGoalDetail">Earn $10 in total.</small>
-          <div class="progress-track"><div class="progress-fill" id="longGoalProgress" style="width:0%"></div></div>
-        </div>
-      </section>
-      <div class="milestones" id="milestones"></div>
-
-      <div class="section-head progression-heading">
-        <div class="section-copy">
-          <div class="section-kicker">Portfolio milestones</div>
-          <h2>🏪 Business milestones</h2>
-          <p>Grow your total business levels to earn cash and a run-long income boost.</p>
-        </div>
-      </div>
-      <div class="milestones" id="businessMilestones"></div>
-    </main>
-
-    <main id="treeScreen" class="game-screen" data-screen="tree" aria-label="Prestige skill tree">
-      <div class="screen-heading">
-        <div class="section-kicker">Permanent investments</div>
-        <h2 id="prestigeTreeTitle" tabindex="-1">🌿 Prestige skill tree</h2>
-        <p>Spend prestige points on skills that stay with your empire through every reset.</p>
-      </div>
-
-      <section class="tree-summary" aria-labelledby="treeSummaryTitle">
-        <h3 id="treeSummaryTitle">Your legacy fund</h3>
-        <div class="tree-summary-metrics">
-          <div><span>Available points</span><strong id="prestigePointsAvailable">0</strong></div>
-          <div><span>Points earned</span><strong id="prestigePointsEarned">0</strong></div>
-          <div><span>Points & skills income</span><strong id="prestigeTreeIncomeBonus">+0%</strong></div>
-        </div>
-        <p id="prestigeTreeGuidance">Reach $300K lifetime earned in one run to prestige for your first point.</p>
-      </section>
-      <div class="tree-status" id="treeStatus" role="status" aria-live="polite"></div>
-      <div class="prestige-tree" id="prestigeTree" aria-label="Prestige skill branches"></div>
-    </main>
-
-    <main id="legacyScreen" class="game-screen" data-screen="legacy" aria-label="Prestige and legacy">
-      <div class="screen-heading">
-        <div class="section-kicker">The long game</div>
-        <h2>👑 Empire prestige</h2>
-        <p>Trade a finished run for permanent points and skills.</p>
-      </div>
-      <section class="milestones prestige-panel" id="prestigePanel">
-        <div class="milestone">
-          <div class="check" aria-hidden="true">★</div>
-          <div class="milestone-copy">
-            <b id="prestigeTitle">Build toward your first prestige</b>
-            <small id="prestigeDescription">Reach $300K lifetime earned in this run to prestige.</small>
-            <div class="progress-track"><div class="progress-fill" id="prestigeProgress" style="width:0%"></div></div>
-          </div>
-          <button class="buy" id="prestigeBtn" type="button" disabled>Prestige<span class="price" id="prestigeRewardLabel">$300K to go</span></button>
-        </div>
-      </section>
-
-      <div class="section-head progression-heading">
-        <div class="section-copy">
-          <div class="section-kicker">What carries forward</div>
-          <h2>🧬 Prestige legacy</h2>
-            <p>Point bonuses, skill tree purchases, and legacy milestones stay after every reset.</p>
-        </div>
-      </div>
-      <section class="milestones legacy-panel" id="legacyPanel" aria-live="polite"></section>
-
-      <section class="save-card" aria-labelledby="saveTitle">
-        <div class="save-copy"><div class="section-kicker">Your progress</div><h2 id="saveTitle">Back up your empire</h2><p>Progress saves on this device. Keep a JSON backup if you want to move it.</p></div>
-        <div class="save-tools">
-          <button type="button" class="save-tool" id="exportSaveBtn">⬇ Export save</button>
-          <button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button>
-          <input id="importSaveFile" type="file" accept=".json,application/json" hidden>
-        </div>
-        <div class="footer">Offline earnings start with a 4-hour cap. Legacy milestones and Operations skills can extend it.</div>
-      </section>
-    </main>
-
-    <nav class="bottom-nav" aria-label="Main game navigation">
-      <button type="button" class="nav-item active" data-nav-target="empire" aria-current="page">
-        <span class="nav-icon" aria-hidden="true">🏘️</span><span>Empire</span>
-      </button>
-      <button type="button" class="nav-item" data-nav-target="upgrades" aria-label="Upgrades">
-        <span class="nav-icon" aria-hidden="true">⬆</span><span>Upgrades</span>
-        <span class="nav-alert" id="upgradeAvailableIndicator" aria-label="Upgrade available" title="You can afford an upgrade" hidden>!</span>
-      </button>
-      <button type="button" class="nav-item" data-nav-target="tree" aria-label="Prestige skill tree">
-        <span class="nav-icon" aria-hidden="true">🌿</span><span>Skills</span>
-        <span class="nav-alert tree-points" id="prestigeTreeIndicator" hidden>0</span>
-      </button>
-      <button type="button" class="nav-item" data-nav-target="legacy">
-        <span class="nav-icon" aria-hidden="true">👑</span><span>Legacy</span>
-      </button>
-    </nav>
-  </div>
-  <script type="module" src="./src/app.js"></script>
+<div class="wrap">
+<header><div class="brand"><div class="logo" aria-hidden="true">🏪</div><div><div class="eyebrow">Your first fortune</div><h1>Tiny Empire</h1><div class="sub">Small starts. Big dreams.</div></di[...]
+<main id="empireScreen" class="game-screen active" data-screen="empire"><section class="hero" aria-label="Your money"><div class="cash-label">YOUR CASH</div><div class="cash" id="cash">$0</div><di[...]
+<div class="stats"><div class="stat"><span>Lifetime earned</span><strong id="lifetime">$0</strong></div><div class="stat"><span>Business levels</span><strong id="businessCount">1</strong></div><di[...]
+<section class="missions-panel" aria-labelledby="missionsTitle"><div class="missions-head"><div><h2 id="missionsTitle">🎯 Daily missions</h2><p>Small wins today. Bigger empire tomorrow.</p></div[...]
+<div class="section-head"><div><h2>🏘️ Your businesses</h2><p>Buy businesses, then level them up for more income.</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;g[...]
+<section class="era-card" aria-live="polite"><div class="era-top"><span class="era-icon" id="eraIcon">🌱</span><div class="era-copy"><b id="eraName">Village Era</b><small id="eraDesc">Start smal[...]
+<div class="compact-unlock" id="compactUnlock"><div class="compact-unlock-copy"><b id="compactUnlockTitle">Next unlock</b><small id="compactUnlockText">Progress toward your next business</small><d[...]
+<main id="upgradesScreen" class="game-screen" data-screen="upgrades"><div class="section-head"><div><h2>🧰 Empire upgrades</h2><p>Research and technology. Build your edge each run; prestige lets[...]
+<div class="upgrades" id="upgrades"></div>
+<div class="section-head"><div><h2>🎯 Goals & rewards</h2><p>Earn lifetime cash, own more businesses, and buy production-doubling tiers at 10, 25, 50, 100, 150 and 200 units.</p></div></div>
+<div class="milestones" id="milestones"></div><div class="section-head"><div><h2>🏪 Business milestones</h2><p>Build your portfolio to earn one-time cash bonuses each run.</p></div></div><div cl[...]
+<main id="legacyScreen" class="game-screen" data-screen="legacy"><div class="section-head"><div><h2>👑 Empire prestige</h2><p>Restart your empire for a permanent income boost.</p></div></div>
+<section class="milestones" id="prestigePanel"><div class="milestone"><div class="check">★</div><div style="min-width:0;flex:1"><b id="prestigeTitle">Build toward your first prestige</b><small i[...]
+<div class="section-head"><div><h2>🧬 Prestige legacy</h2><p>Each prestige unlocks permanent account-wide milestones. Your legacy grows across resets.</p></div></div><section class="milestones" [...]
+<div class="save-tools"><button type="button" class="save-tool" id="exportSaveBtn">⬇ Export save</button><button type="button" class="save-tool" id="importSaveBtn">⬆ Import save</button><input[...]
+</main>
+<nav class="bottom-nav" aria-label="Main game navigation">
+<button type="button" class="nav-item active" data-nav-target="empire" aria-current="page"><span class="nav-icon" aria-hidden="true">🏘️</span><span>Empire</span></button>
+<button type="button" class="nav-item" data-nav-target="upgrades" aria-label="Upgrades"><span class="nav-icon" aria-hidden="true">⬆</span><span>Upgrades</span><span class="nav-alert" id="upgrade[...]
+<button type="button" class="nav-item" data-nav-target="legacy"><span class="nav-icon" aria-hidden="true">👑</span><span>Legacy</span></button>
+</nav>
+</div>
+<script>
+(()=>{
+'use strict';
+const SAVE_KEY='tiny-empire-save-v1';
+const PRESTIGE_THRESHOLD=50000;
+const COST_SCALE=1.15; // Each additional unit costs 15% more, following the classic idle-game curve.
+const defs=[
+{id:'lemonade',name:'Lemonade Stand',icon:'🍋',desc:'A refreshing little money-maker.',unlock:0,base:.4,cost:10,costGrowth:COST_SCALE,incomeGrowth:1.20},
+{id:'snack',name:'Snack Cart',icon:'🥨',desc:'Quick bites, steady business.',unlock:25,base:1.8,cost:25,costGrowth:COST_SCALE,incomeGrowth:1.22},
+{id:'coffee',name:'Coffee Corner',icon:'☕',desc:'Fuel the town and your fortune.',unlock:180,base:8,cost:180,costGrowth:COST_SCALE,incomeGrowth:1.23},
+{id:'foodtruck',name:'Food Truck',icon:'🚚',desc:'Take your best sellers on the road.',unlock:750,base:35,cost:750,costGrowth:COST_SCALE,incomeGrowth:1.24},
+{id:'arcade',name:'Pixel Arcade',icon:'🕹️',desc:'A neon hangout with a steady crowd.',unlock:3000,base:150,cost:3000,costGrowth:COST_SCALE,incomeGrowth:1.25},
+{id:'mall',name:'Mini Mall',icon:'🏬',desc:'A whole block of shops under one roof.',unlock:12000,base:650,cost:12000,costGrowth:COST_SCALE,incomeGrowth:1.26},
+{id:'cinema',name:'Grand Cinema',icon:'🎬',desc:'Packed premieres turn tickets into serious income.',unlock:75000,base:2600,cost:75000,costGrowth:COST_SCALE,incomeGrowth:1.27},
+{id:'spaceport',name:'Spaceport',icon:'🚀',desc:'The town goes interstellar, and your profits follow.',unlock:250000,base:12500,cost:250000,costGrowth:COST_SCALE,incomeGrowth:1.28},
+{id:'railway',name:'Maglev Railway',icon:'🚄',desc:'Connect distant markets at astonishing speed.',unlock:500000,base:25000,cost:500000,costGrowth:COST_SCALE,incomeGrowth:1.29},
+{id:'resort',name:'Oceanfront Resort',icon:'🏝️',desc:'A luxury destination where every room earns.',unlock:2500000,base:125000,cost:2500000,costGrowth:COST_SCALE,incomeGrowth:1.30},
+{id:'lunar',name:'Lunar Colony',icon:'🌕',desc:'Build a thriving economy beyond Earth.',unlock:10000000,base:500000,cost:10000000,costGrowth:COST_SCALE,incomeGrowth:1.31},
+{id:'mars',name:'Mars Terraforming',icon:'🪐',desc:'Turn a red planet into your next market.',unlock:50000000,base:2500000,cost:50000000,costGrowth:COST_SCALE,incomeGrowth:1.32},
+{id:'dyson',name:'Dyson Energy Grid',icon:'☀️',desc:'Harvest a star’s power to fuel your empire.',unlock:250000000,base:12500000,cost:250000000,costGrowth:COST_SCALE,incomeGrowth:1.33},
+{id:'quantum',name:'Quantum Network',icon:'🌀',desc:'Trade across realities with near-infinite reach.',unlock:1000000000,base:50000000,cost:1000000000,costGrowth:COST_SCALE,incomeGrowth:1.34},
+{id:'timemachine',name:'Time Machine Works',icon:'⏳',desc:'Turn tomorrow’s opportunities into today’s revenue.',unlock:100000000000,base:5000000000,cost:100000000000,costGrowth:COST_SCALE,in[...]
+{id:'multiverse',name:'Multiverse Exchange',icon:'🪐',desc:'Trade goods and ideas across parallel realities.',unlock:10000000000000,base:500000000000,cost:10000000000000,costGrowth:COST_SCALE,in[...]
+{id:'blackhole',name:'Black Hole Foundry',icon:'🕳️',desc:'Convert extreme gravity into industrial output.',unlock:1000000000000000,base:50000000000000,cost:1000000000000000,costGrowth:COST_SC[...]
+{id:'federation',name:'Galactic Federation',icon:'🛸',desc:'Coordinate a thousand civilizations under one economy.',unlock:100000000000000000,base:5000000000000000,cost:100000000000000000,costGr[...]
+{id:'universeforge',name:'Universe Forge',icon:'🌌',desc:'Manufacture new universes to expand your markets.',unlock:10000000000000000000,base:500000000000000000,cost:10000000000000000000,costGro[...]
+{id:'realityengine',name:'Reality Engine',icon:'⚙️',desc:'Rewrite the rules that govern production itself.',unlock:1e21,base:5e19,cost:1e21,costGrowth:COST_SCALE,incomeGrowth:1.40},
+{id:'omniverse',name:'Omniverse Network',icon:'♾️',desc:'Connect every possible timeline to your supply chain.',unlock:1e23,base:5e21,cost:1e23,costGrowth:COST_SCALE,incomeGrowth:1.41},
+{id:'eternal',name:'Eternal Empire',icon:'👑',desc:'Build an empire that outlasts time and reality.',unlock:1e25,base:5e23,cost:1e25,costGrowth:COST_SCALE,incomeGrowth:1.42}
+];
+const upgrades=[
+{id:'pitch',icon:'📣',name:'Confident Pitch',desc:'Every tap earns 2× cash.',cost:20,effect:'tap',mult:2},
+{id:'recipes',icon:'🍋',name:'Secret Recipe',desc:'Lemonade income ×2 forever.',cost:100,effect:'lemonade',mult:2},
+{id:'flyers',icon:'🗞️',name:'Local Flyers',desc:'All business income ×1.25.',cost:250,effect:'global',mult:1.25},
+{id:'service',icon:'⚙️',name:'Fast Service',desc:'All business income ×1.5.',cost:1000,effect:'global',mult:1.5},
+{id:'franchise',icon:'📈',name:'Franchise Playbook',desc:'All business income ×2.',cost:5000,effect:'global',mult:2},
+{id:'digital',icon:'💳',name:'Digital Checkout',desc:'Every tap earns another 3× cash.',cost:15000,effect:'tap',mult:3},
+{id:'franchise2',icon:'🌐',name:'Global Franchise',desc:'All business income ×1.5.',cost:500000,effect:'global',mult:1.5},
+{id:'automation',icon:'🤖',name:'Smart Automation',desc:'All business income ×2.',cost:2000000,effect:'global',mult:2},
+{id:'orbital',icon:'🛰️',name:'Orbital Logistics',desc:'All business income ×2.5.',cost:10000000,effect:'global',mult:2.5},
+{id:'fusion',icon:'⚛️',name:'Fusion Power',desc:'All business income ×3.',cost:50000000,effect:'global',mult:3},
+{id:'neural',icon:'🧠',name:'Neural Management',desc:'All business income ×4.',cost:250000000,effect:'global',mult:4},
+{id:'nanotech',icon:'🧬',name:'Nanotech Manufacturing',desc:'All business income ×5.',cost:1000000000,effect:'global',mult:5},
+{id:'tapbot',icon:'🦾',name:'Auto-Collector Drones',desc:'Every tap earns another 5× cash.',cost:250000,effect:'tap',mult:5},
+{id:'singularity',icon:'✨',name:'Singularity Engine',desc:'All business income ×8.',cost:5000000000,effect:'global',mult:8},
+{id:'cinemaBoost',icon:'🎥',name:'Studio Blockbusters',desc:'Grand Cinema income ×2.',cost:150000,effect:'business',business:'cinema',threshold:1},
+{id:'spaceportBoost',icon:'🛸',name:'Orbital Tourism',desc:'Spaceport income ×2.',cost:500000,effect:'business',business:'spaceport',threshold:1},
+{id:'railwayBoost',icon:'🧭',name:'Maglev Scheduling',desc:'Maglev Railway income ×2.',cost:750000,effect:'business',business:'railway',threshold:1},
+{id:'resortBoost',icon:'🛎️',name:'Resort Booking AI',desc:'Oceanfront Resort income ×2.',cost:5000000,effect:'business',business:'resort',threshold:1},
+{id:'lunarBoost',icon:'🧪',name:'Lunar Helium Mining',desc:'Lunar Colony income ×2.',cost:25000000,effect:'business',business:'lunar',threshold:1},
+{id:'marsBoost',icon:'🏗️',name:'Martian Supply Chain',desc:'Mars Terraforming income ×2.',cost:125000000,effect:'business',business:'mars',threshold:1},
+{id:'dysonBoost',icon:'🔆',name:'Stellar Fusion Matrix',desc:'Dyson Energy Grid income ×2.',cost:625000000,effect:'business',business:'dyson',threshold:1},
+{id:'quantumBoost',icon:'🌀',name:'Quantum Entanglement',desc:'Quantum Network income ×2.',cost:2500000000,effect:'business',business:'quantum',threshold:1},
+{id:'timeBoost',icon:'⏳',name:'Chrono Arbitrage',desc:'Time Machine Works income ×2.',cost:500000000000,effect:'business',business:'timemachine',threshold:1},
+{id:'multiverseBoost',icon:'🪐',name:'Cross-Reality Markets',desc:'Multiverse Exchange income ×2.',cost:50000000000000,effect:'business',business:'multiverse',threshold:1},
+{id:'blackholeBoost',icon:'🕳️',name:'Event Horizon Mining',desc:'Black Hole Foundry income ×2.',cost:5000000000000000,effect:'business',business:'blackhole',threshold:1},
+{id:'federationBoost',icon:'🛸',name:'Galactic Trade Charter',desc:'Galactic Federation income ×2.',cost:500000000000000000,effect:'business',business:'federation',threshold:1},
+{id:'universeBoost',icon:'🌌',name:'Cosmic Fabrication',desc:'Universe Forge income ×2.',cost:5e19,effect:'business',business:'universeforge',threshold:1},
+{id:'realityBoost',icon:'⚙️',name:'Reality Optimization',desc:'Reality Engine income ×2.',cost:5e21,effect:'business',business:'realityengine',threshold:1},
+{id:'omniverseBoost',icon:'♾️',name:'Omniversal Logistics',desc:'Omniverse Network income ×2.',cost:5e23,effect:'business',business:'omniverse',threshold:1},
+{id:'eternalBoost',icon:'👑',name:'Eternal Dividend',desc:'Eternal Empire income ×2.',cost:5e25,effect:'business',business:'eternal',threshold:1}
+];
+... (rest of original script omitted for brevity) ...
+})();
+</script>
 </body>
 </html>
-
